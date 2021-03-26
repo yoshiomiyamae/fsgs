@@ -167,41 +167,22 @@ export class Fsgs extends React.Component<FsgsProps> {
   };
 
   private getScWidth = () =>
-    nullFallback(
-      this.props.config &&
-        this.props.config.windowConfig &&
-        this.props.config.windowConfig.scWidth,
-      640
-    );
+    nullFallback(this.props.config?.windowConfig?.scWidth, 640);
   private getScHeight = () =>
-    nullFallback(
-      this.props.config &&
-        this.props.config.windowConfig &&
-        this.props.config.windowConfig.scHeight,
-      480
-    );
+    nullFallback(this.props.config?.windowConfig?.scHeight, 480);
   private getChSpeedNormal = () =>
-    nullFallback(
-      this.props.config &&
-        this.props.config.windowConfig &&
-        this.props.config.windowConfig.chSpeeds &&
-        this.props.config.windowConfig.chSpeeds.normal,
-      30
-    );
+    nullFallback(this.props.config?.windowConfig?.chSpeeds?.normal, 30);
   private getMessageLayerConfig = () =>
     nullFallback(
-      this.props.config && this.props.config.messageLayerConfig,
+      this.props.config?.messageLayerConfig,
       messageLayerConfigDefault
     );
 
   async componentDidMount() {
-    console.log("!!!");
     this.messageLayers = [];
     this.characterLayers = [];
     this._characterLayers = [];
-    console.log(this.props.config);
-    console.log(this.props.config?.windowConfig);
-    if (this.props.config && this.props.config.windowConfig) {
+    if (this.props.config?.windowConfig) {
       if (this.props.config.windowConfig.numCharacterLayers) {
         for (
           let i = 0;
@@ -254,7 +235,6 @@ export class Fsgs extends React.Component<FsgsProps> {
     console.log(
       `offsetWidth: ${document.body.offsetWidth}, offsetHight: ${document.body.offsetHeight}`
     );
-    console.log(windowBounds);
     const horizontalMargin = windowBounds.width - document.body.offsetWidth;
     const verticalMargin = windowBounds.height - document.body.offsetHeight;
     console.log(
@@ -267,14 +247,12 @@ export class Fsgs extends React.Component<FsgsProps> {
     );
     const x = Math.round((window.screen.width - width) / 2);
     const y = Math.round((window.screen.height - height) / 2);
-    console.log({ height, width, x, y });
     window.api.window.setBounds({ height, width, x, y });
     this.programCounter = 0;
     if (this.dom) {
       this.audio = new Audio();
       this.dom.appendChild(this.audio);
     }
-    console.log(this.programCounter);
     this.timer = setInterval(() => {
       if (!this.processing) {
         this.updateCanvas();
@@ -286,17 +264,11 @@ export class Fsgs extends React.Component<FsgsProps> {
 
   updateCanvas = async () => {
     if (this.dom) {
-      const baseLayerSize = this.baseLayer && this.baseLayer.getSize();
-      if (
-        baseLayerSize &&
-        baseLayerSize.height === document.body.clientHeight
-      ) {
+      const baseLayerSize = this.baseLayer?.getSize();
+      if (baseLayerSize?.height === document.body.clientHeight) {
         this.offset.x = (document.body.clientWidth - baseLayerSize.width) / 2;
         this.offset.y = 0;
-      } else if (
-        baseLayerSize &&
-        baseLayerSize.width === document.body.clientWidth
-      ) {
+      } else if (baseLayerSize?.width === document.body.clientWidth) {
         this.offset.x = 0;
         this.offset.y = (document.body.clientHeight - baseLayerSize.height) / 2;
       } else {
@@ -306,9 +278,9 @@ export class Fsgs extends React.Component<FsgsProps> {
       this.dom.style.left = `${this.offset.x}px`;
       this.dom.style.top = `${this.offset.y}px`;
     }
-    this.baseLayer && this.baseLayer.update();
+    this.baseLayer?.update();
     for (const characterLayer of this.characterLayers) {
-      characterLayer && characterLayer.update();
+      characterLayer?.update();
     }
     for (const messageLayer of this.messageLayers) {
       if (messageLayer) {
@@ -320,7 +292,7 @@ export class Fsgs extends React.Component<FsgsProps> {
       }
     }
     this.transitionWaiting =
-      (this.baseLayer && this.baseLayer.getTransitionWorking()) ||
+      this.baseLayer?.getTransitionWorking() ||
       this.characterLayers
         .map((characterLayer) => characterLayer?.getTransitionWorking())
         .reduce(
@@ -334,7 +306,7 @@ export class Fsgs extends React.Component<FsgsProps> {
           false
         ) ||
       false;
-    if (this.script && this.script.scenario) {
+    if (this.script.scenario) {
       this.processing = true;
       if (this.script.scenario.length <= this.programCounter) {
         this.processing = false;
@@ -421,21 +393,21 @@ export class Fsgs extends React.Component<FsgsProps> {
     this.jump(null, data.startFrom, null, data.offset);
   };
 
-  setImage = (args: SetImageArgs) => {
+  setImage = async (args: SetImageArgs) => {
     const image = new Image();
     image.src = args.data;
-    image.onload = () => {
+    image.onload = async () => {
       switch (args.layer) {
         case "base": {
           if (!args.page) {
             throw "page must be specified.";
           }
-          this.baseLayer && this.baseLayer.setImage(image, args.page);
+          this.baseLayer?.setImage(image, args.page);
           break;
         }
         case "graph": {
           const messageLayer = this.messageLayers[this.currentMessageLayer];
-          messageLayer?.writeGraph(image);
+          await messageLayer?.writeGraph(image);
           break;
         }
         case "message": {
@@ -575,7 +547,7 @@ export class Fsgs extends React.Component<FsgsProps> {
         break;
       }
       case "endlink": {
-        this.endlink();
+        await this.endlink();
         break;
       }
       case "label": {
@@ -700,7 +672,7 @@ export class Fsgs extends React.Component<FsgsProps> {
   };
 
   getCanvasPosition = (pagePosition: Position) => {
-    const baseLayerSize = this.baseLayer && this.baseLayer.getSize();
+    const baseLayerSize = this.baseLayer?.getSize();
     if (!baseLayerSize) {
       return {
         x: 0,
@@ -719,7 +691,7 @@ export class Fsgs extends React.Component<FsgsProps> {
 
   getProgramCounter = (target: string | number) => {
     if (typeof target === "string") {
-      const label = this.script && this.labelStore[target.substr(1)];
+      const label = this.labelStore[target.substr(1)];
       if (label) {
         return label.index;
       }
@@ -850,7 +822,7 @@ export class Fsgs extends React.Component<FsgsProps> {
         : layerNumber.type === LayerTypes.Message
         ? this.messageLayers[layerNumber.number]
         : this.characterLayers[layerNumber.number];
-    layer && layer.copyForeToBack();
+    layer?.copyForeToBack();
   };
 
   ch = (text: string) => {
@@ -868,11 +840,10 @@ export class Fsgs extends React.Component<FsgsProps> {
     switch (params.layer) {
       case "base": {
         if (params.visible) {
-          this.baseLayer &&
-            this.baseLayer.setVisible(params.visible === "true");
+            this.baseLayer?.setVisible(params.visible === "true");
         }
         const data = await window.api.getImage(`bgimage/${params.storage}`);
-        this.setImage({
+        await this.setImage({
           data,
           layer: params.layer,
           page: params.page,
@@ -886,7 +857,7 @@ export class Fsgs extends React.Component<FsgsProps> {
           characterLayer?.setVisible(params.visible === "true");
         }
         const data = await window.api.getImage(`fgimage/${params.storage}`);
-        this.setImage({
+        await this.setImage({
           data,
           layer: params.layer,
           page: params.page,
@@ -997,7 +968,7 @@ export class Fsgs extends React.Component<FsgsProps> {
 
   graph = async (storage: string) => {
     const data = await window.api.getImage(`image/${storage}`);
-    this.setImage({
+    await this.setImage({
       data,
       layer: "graph",
     });
@@ -1011,12 +982,12 @@ export class Fsgs extends React.Component<FsgsProps> {
     this.linkParams = params;
   };
 
-  endlink = () => {
+  endlink = async () => {
     if (!this.linkParams) {
       return;
     }
     const messageLayer = this.messageLayers[this.currentMessageLayer];
-    messageLayer?.setLink(this.linkParams);
+    await messageLayer?.setLink(this.linkParams);
     this.linkParams = null;
   };
 
@@ -1089,7 +1060,7 @@ export class Fsgs extends React.Component<FsgsProps> {
     }
     if (params.frame) {
       const data = await window.api.getImage(`image/${params.frame}`);
-      this.setImage({
+      await this.setImage({
         data,
         layer: "message",
         layerNumber: 0,
@@ -1117,7 +1088,7 @@ export class Fsgs extends React.Component<FsgsProps> {
   };
 
   stopbgm = () => {
-    this.audio && this.audio.pause();
+    this.audio?.pause();
   };
 
   current = (params: ParameterCollection) => {
@@ -1156,11 +1127,10 @@ export class Fsgs extends React.Component<FsgsProps> {
             : dlayer === LayerTypes.Message
             ? this.messageLayers[layerNumber.number]
             : this.characterLayers[layerNumber.number];
-        layer &&
-          layer.transition("universal", params.time, {
-            rule: image,
-            vague: params.vague,
-          });
+        layer?.transition("universal", params.time, {
+          rule: image,
+          vague: params.vague,
+        });
       };
     } else {
       const layer = params.layer
@@ -1168,11 +1138,10 @@ export class Fsgs extends React.Component<FsgsProps> {
           ? this.messageLayers[layerNumber.number]
           : this.characterLayers[layerNumber.number]
         : this.baseLayer;
-      layer &&
-        layer.transition(params.method, parseInt(params.time), {
-          from: params.from,
-          stay: params.stay,
-        });
+      layer?.transition(params.method, parseInt(params.time), {
+        from: params.from,
+        stay: params.stay,
+      });
     }
   };
 

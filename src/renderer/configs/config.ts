@@ -1,4 +1,4 @@
-import {Config, MessageLayerConfig} from '../models/fsgs-model';
+import { Config, MessageLayerConfig } from "../models/fsgs-model";
 
 export const messageLayerConfigDefault: MessageLayerConfig = {
   frameGraphic: "",
@@ -17,7 +17,7 @@ export const messageLayerConfigDefault: MessageLayerConfig = {
   defaultFont: {
     size: 48,
     face: "ＭＳ ゴシック",
-    color: 0xFFFFFF,
+    color: 0xffffff,
     italic: false,
     bold: true,
     rubySize: 20,
@@ -35,11 +35,11 @@ export const messageLayerConfigDefault: MessageLayerConfig = {
   glyphFixedPosition: false,
   glyphFixedLeft: 0,
   glyphFixedTop: 0,
-  defaultLinkColor: 0x0080FF,
+  defaultLinkColor: 0x0080ff,
   defaultLinkOpacity: 0x40,
   vertical: false,
   draggable: false,
-}
+};
 export const config: Config = {
   configVersion: "3.32 stable",
   title: "吉里吉里",
@@ -140,8 +140,8 @@ export const config: Config = {
     autoReturn: true,
     maxPages: 100,
     maxLines: 2000,
-    storeState: false
-  }
-}
+    storeState: false,
+  },
+};
 
 export default config;

@@ -135,9 +135,9 @@ export class MessageLayer extends React.Component<
   };
 
   setText = (text: string) => {
-    const context = this.fore.base && this.fore.base.getContext("2d");
+    const context = this.fore.base?.getContext("2d");
     const lineWidth = this.getMW() - this.getMarginR();
-    let textWidth = context && context.measureText(text).width;
+    let textWidth = context?.measureText(text).width;
 
     if (textWidth) {
       this.lineWidths = [];
@@ -151,91 +151,94 @@ export class MessageLayer extends React.Component<
 
     this.remainingText = text;
     this.currentLine = 0;
-    if (this.afterSetAlignment) {
-      if (this.vertical) {
-        this.currentCaretPosition.y = this.calculateTopMargin();
-      } else {
-        this.currentCaretPosition.x = this.calculateLeftMargin();
-      }
-      this.afterSetAlignment = false;
+    if (!this.afterSetAlignment) {
+      return;
     }
+    if (this.vertical) {
+      this.currentCaretPosition.y = this.calculateTopMargin();
+    } else {
+      this.currentCaretPosition.x = this.calculateLeftMargin();
+    }
+    this.afterSetAlignment = false;
   };
 
   setRuby = (text: string) => {
     this.ruby = text;
   };
 
-  setLink = (params: ParameterCollection) => {
+  setLink = async (params: ParameterCollection) => {
     const text: string = params.text;
     let rectangle: Rectangle | null = null;
     this.setText(text);
     for (let i = 0; i < this.remainingText.length; i++) {
       const character = this.remainingText[i];
-      const characterRectangle = this.writeCharacter(character);
+      const characterRectangle = await this.writeCharacter(character);
       if (characterRectangle) {
         rectangle = margeRectangle(rectangle, characterRectangle);
       }
     }
-    const context = this.fore.base && this.fore.base.getContext("2d");
-    if (context && rectangle) {
-      this.clickableAreas.push({
-        area: rectangle,
-        params,
-      });
-    }
+    const context = this.fore.base?.getContext("2d");
     this.remainingText = "";
+    if (!context || !rectangle) {
+      return;
+    }
+    this.clickableAreas.push({
+      area: rectangle,
+      params,
+    });
   };
 
   setEdit = (params: ParameterCollection, onInput: (value: string) => void) => {
     const actualSize = this.getSize();
-    if (actualSize) {
-      const ratio = this.props.width / actualSize.width;
-
-      const input = document.createElement("input");
-      this.fore.form && this.fore.form.appendChild(input);
-      const fontSize = this.getFontSize();
-      input.style.position = "absolute";
-      input.style.fontSize = `${fontSize}px`;
-      input.style.transformOrigin = "left top";
-      if (params.length) {
-        input.style.width = `${params.length}px`;
-      }
-      if (params.opacity) {
-        let backgroundColor: ColorObject;
-        if (params.bgcolor) {
-          backgroundColor = integerToRgb(
-            nullFallback(colorStringToInteger("" + params.bgcolor), 0xffffff)
-          );
-        } else {
-          backgroundColor = {
-            r: 0xff,
-            g: 0xff,
-            b: 0xff,
-          };
-        }
-        input.style.background = `rgba(${backgroundColor.r},${
-          backgroundColor.g
-        },${backgroundColor.b},${+params.opacity / 100})`;
-      }
-      if (params.color) {
-        input.style.color = integerToColorString(
-          nullFallback(colorStringToInteger(params.color), 0x000000)
-        );
-      }
-      const inputStyle = window.getComputedStyle(input);
-      const height = parseInt(nullFallback(inputStyle.height, "0"));
-      const y =
-        this.currentCaretPosition.y +
-        this.lineHeight -
-        height -
-        this.getLineSpacing() / 5;
-      const x = this.currentCaretPosition.x;
-      input.style.borderRadius = `${height * 0.2}px`;
-      input.dataset["x"] = `${x}`;
-      input.dataset["y"] = `${y}`;
-      input.oninput = () => onInput(input.value);
-      this.currentCaretPosition.x += input.offsetWidth + this.getPitch();
+    if (!actualSize) {
+      return;
     }
+    const ratio = this.props.width / actualSize.width;
+
+    const input = document.createElement("input");
+    this.fore.form?.appendChild(input);
+    const fontSize = this.getFontSize();
+    input.style.position = "absolute";
+    input.style.fontSize = `${fontSize}px`;
+    input.style.transformOrigin = "left top";
+    if (params.length) {
+      input.style.width = `${params.length}px`;
+    }
+    if (params.opacity) {
+      let backgroundColor: ColorObject;
+      if (params.bgcolor) {
+        backgroundColor = integerToRgb(
+          nullFallback(colorStringToInteger("" + params.bgcolor), 0xffffff)
+        );
+      } else {
+        backgroundColor = {
+          r: 0xff,
+          g: 0xff,
+          b: 0xff,
+        };
+      }
+      input.style.background = `rgba(${backgroundColor.r},${
+        backgroundColor.g
+      },${backgroundColor.b},${+params.opacity / 100})`;
+    }
+    if (params.color) {
+      input.style.color = integerToColorString(
+        nullFallback(colorStringToInteger(params.color), 0x000000)
+      );
+    }
+    const inputStyle = window.getComputedStyle(input);
+    const height = parseInt(nullFallback(inputStyle.height, "0"));
+    const y =
+      this.currentCaretPosition.y +
+      this.lineHeight -
+      height -
+      this.getLineSpacing() / 5;
+    const x = this.currentCaretPosition.x;
+    input.style.borderRadius = `${height * 0.2}px`;
+    input.dataset["x"] = `${x}`;
+    input.dataset["y"] = `${y}`;
+    input.oninput = () => onInput(input.value);
+    this.currentCaretPosition.x += input.offsetWidth + this.getPitch();
   };
 
   setFontColor = (color: string | number) => {
@@ -467,18 +470,19 @@ export class MessageLayer extends React.Component<
   };
 
   resize = (dom: HTMLElement | null) => {
-    if (dom) {
-      const clientWidth = document.body.clientWidth;
-      const clientHeight = document.body.clientHeight;
-      const ratio = this.props.height / this.props.width;
+    if (!dom) {
+      return;
+    }
+    const clientWidth = document.body.clientWidth;
+    const clientHeight = document.body.clientHeight;
+    const ratio = this.props.height / this.props.width;
 
-      if (ratio < clientHeight / clientWidth) {
-        dom.style.height = `${clientWidth * ratio}px`;
-        dom.style.width = `${clientWidth}px`;
-      } else {
-        dom.style.width = `${clientHeight / ratio}px`;
-        dom.style.height = `${clientHeight}px`;
-      }
+    if (ratio < clientHeight / clientWidth) {
+      dom.style.height = `${clientWidth * ratio}px`;
+      dom.style.width = `${clientWidth}px`;
+    } else {
+      dom.style.width = `${clientHeight / ratio}px`;
+      dom.style.height = `${clientHeight}px`;
     }
   };
 
@@ -487,28 +491,30 @@ export class MessageLayer extends React.Component<
     this.messageLayerElementSetResizeEdit(this.fore);
   };
 
-  private messageLayerElementSetResizeEdit = (messageLayerElementSet: MessageLayerElementSet) => {
+  private messageLayerElementSetResizeEdit = (
+    messageLayerElementSet: MessageLayerElementSet
+  ) => {
     if (!messageLayerElementSet.form) {
       return;
-        }
-      const actualSize = this.getSize();
+    }
+    const actualSize = this.getSize();
     if (!actualSize) {
       return;
-        }
-        const ratio = actualSize.width / this.props.width;
-        for (const element of Array.prototype.slice.call(
+    }
+    const ratio = actualSize.width / this.props.width;
+    for (const element of Array.prototype.slice.call(
       messageLayerElementSet.form.children
-        )) {
-          const element2 = element as HTMLElement;
-          element2.style.transform = `scale(${ratio})`;
-          element2.style.left = `${
-            +nullFallback(element2.dataset["x"], 0) * ratio
-          }px`;
-          element2.style.top = `${
-            +nullFallback(element2.dataset["y"], 0) * ratio
-          }px`;
-        }
-      }
+    )) {
+      const element2 = element as HTMLElement;
+      element2.style.transform = `scale(${ratio})`;
+      element2.style.left = `${
+        +nullFallback(element2.dataset["x"], 0) * ratio
+      }px`;
+      element2.style.top = `${
+        +nullFallback(element2.dataset["y"], 0) * ratio
+      }px`;
+    }
+  };
 
   transition = async (
     method: string,
@@ -530,31 +536,27 @@ export class MessageLayer extends React.Component<
     if (!this.clickWaiting) {
       for (let i = 0; i < this.remainingText.length; i++) {
         const character = this.remainingText[i];
-        this.writeCharacter(character);
+        await this.writeCharacter(character);
       }
       this.remainingText = "";
     }
-    if (!this.processing) {
-      this.processing = true;
-      if (this.clickWaiting) {
-        if (!this.noWait) {
-          await sleep(this.getSpeed());
-        }
-        const newText = this.remainingText.substring(1);
-        const character = this.remainingText[0];
-        this.writeCharacter(character);
-        this.remainingText = nullFallback(newText, "");
-      }
-      this.processing = false;
+    if (this.processing) {
+      return;
     }
+    this.processing = true;
+    if (this.clickWaiting) {
+      if (!this.noWait) {
+        await sleep(this.getSpeed());
+      }
+      const newText = this.remainingText.substring(1);
+      const character = this.remainingText[0];
+      await this.writeCharacter(character);
+      this.remainingText = nullFallback(newText, "");
+    }
+    this.processing = false;
   };
 
-  writePosition = (
-    width: number,
-    height: number,
-    callback: (rectangle: Rectangle) => void
-  ) => {
-    const context = this.fore.base && this.fore.base.getContext("2d");
+  writePosition = async (width: number, height: number) => {
     if (this.vertical) {
       console.log("%cVertical mode is under development", "color: orange");
       if (
@@ -572,11 +574,6 @@ export class MessageLayer extends React.Component<
         this.processing = false;
         return null;
       }
-      const x =
-        this.currentCaretPosition.x -
-        this.lineHeight -
-        width -
-        this.getLineSpacing() / 5;
       const characterRectangle: Rectangle = {
         position: {
           x: this.currentCaretPosition.x - this.lineHeight + width,
@@ -587,8 +584,6 @@ export class MessageLayer extends React.Component<
           height,
         },
       };
-
-      callback(characterRectangle);
 
       this.currentCaretPosition.y += height + this.getPitch();
 
@@ -609,11 +604,6 @@ export class MessageLayer extends React.Component<
         this.processing = false;
         return null;
       }
-      const y =
-        this.currentCaretPosition.y +
-        this.lineHeight -
-        height -
-        this.getLineSpacing() / 5;
       const characterRectangle: Rectangle = {
         position: {
           x: this.currentCaretPosition.x,
@@ -625,212 +615,230 @@ export class MessageLayer extends React.Component<
         },
       };
 
-      callback(characterRectangle);
-
       this.currentCaretPosition.x += width + this.getPitch();
 
       return characterRectangle;
     }
   };
 
-  writeCharacter = (character: string) => {
-    if (character) {
-      const context = this.fore.base && this.fore.base.getContext("2d");
-      if (context) {
-        context.textAlign = "left";
-        context.textBaseline = "top";
-        context.font = this.getFont();
-        context.globalAlpha = 1;
-        const width = context.measureText(character).width;
-        const height = this.getFontSize();
-
-        if (this.vertical) {
-          const x =
-            this.currentCaretPosition.x -
-            this.lineHeight -
-            width -
-            this.getLineSpacing() / 5;
-          return this.writePosition(width, height, (characterRectangle) => {
-            if (this.shadow) {
-              context.fillStyle = integerToColorString(this.getShadowColor());
-              context.fillText(
-                character,
-                characterRectangle.position.x + 2,
-                characterRectangle.position.y + 2
-              );
-            }
-            if (this.font.edge) {
-              context.strokeStyle = integerToColorString(this.getEdgeColor());
-              context.lineWidth = 2;
-              context.strokeText(
-                character,
-                characterRectangle.position.x,
-                characterRectangle.position.y
-              );
-            }
-            context.fillStyle = integerToColorString(this.getFontColor());
-            context.fillText(
-              character,
-              characterRectangle.position.x,
-              characterRectangle.position.y
-            );
-
-            if (this.ruby) {
-              context.textAlign = "center";
-              context.textBaseline = "middle";
-              context.font = `${this.font.rubySize}px ${this.font.face}`;
-              context.fillText(
-                this.ruby,
-                x,
-                this.currentCaretPosition.y + height / 2
-              );
-              this.ruby = "";
-            }
-          });
-        } else {
-          const y =
-            this.currentCaretPosition.y +
-            this.lineHeight -
-            height -
-            this.getLineSpacing() / 5;
-          return this.writePosition(width, height, (characterRectangle) => {
-            if (this.shadow) {
-              context.fillStyle = integerToColorString(this.getShadowColor());
-              context.fillText(
-                character,
-                characterRectangle.position.x + 2,
-                characterRectangle.position.y + 2
-              );
-            }
-            if (this.font.edge) {
-              context.strokeStyle = integerToColorString(this.getEdgeColor());
-              context.lineWidth = 2;
-              context.strokeText(
-                character,
-                characterRectangle.position.x,
-                characterRectangle.position.y
-              );
-            }
-            context.fillStyle = integerToColorString(this.getFontColor());
-            context.fillText(
-              character,
-              characterRectangle.position.x,
-              characterRectangle.position.y
-            );
-
-            if (this.ruby) {
-              context.textAlign = "center";
-              context.textBaseline = "bottom";
-              context.font = `${this.font.rubySize}px ${this.font.face}`;
-              context.fillText(
-                this.ruby,
-                this.currentCaretPosition.x + width / 2,
-                y
-              );
-              this.ruby = "";
-            }
-          });
-        }
-      }
-    }
-
-    return null;
+  writeRuby = (
+    context: CanvasRenderingContext2D,
+    textAlign: CanvasTextAlign,
+    textBaseline: CanvasTextBaseline,
+    x: number,
+    y: number
+  ) => {
+    const currentTextAlign = context.textAlign;
+    const currentBaseline = context.textBaseline;
+    const currentFont = context.font;
+    context.textAlign = textAlign;
+    context.textBaseline = textBaseline;
+    context.font = `${this.font.rubySize}px ${this.font.face}`;
+    context.fillText(this.ruby, x, y);
+    this.ruby = "";
+    context.textAlign = currentTextAlign;
+    context.textBaseline = currentBaseline;
+    context.font = currentFont;
   };
 
-  writeGraph = (image: HTMLImageElement) => {
+  writeCharacter = async (character: string) => {
+    if (!character) {
+      return null;
+    }
+    const context = this.fore.base?.getContext("2d");
+    if (!context) {
+      return null;
+    }
+    context.globalAlpha = 1;
+    context.textAlign = "left";
+    context.textBaseline = "top";
+    context.font = this.getFont();
+    const width = context.measureText(character).width;
+    const height = this.getFontSize();
+
+    if (this.vertical) {
+      const x =
+        this.currentCaretPosition.x -
+        this.lineHeight -
+        width -
+        this.getLineSpacing() / 5;
+
+      if (this.ruby) {
+        this.writeRuby(
+          context,
+          "center",
+          "middle",
+          x,
+          this.currentCaretPosition.y + height / 2
+        );
+      }
+      const characterRectangle = await this.writePosition(width, height);
+      if (!characterRectangle) {
+        return null;
+      }
+      if (this.shadow) {
+        context.fillStyle = integerToColorString(this.getShadowColor());
+        context.fillText(
+          character,
+          characterRectangle.position.x + 2,
+          characterRectangle.position.y + 2
+        );
+      }
+      if (this.font.edge) {
+        context.strokeStyle = integerToColorString(this.getEdgeColor());
+        context.lineWidth = 2;
+        context.strokeText(
+          character,
+          characterRectangle.position.x,
+          characterRectangle.position.y
+        );
+      }
+      context.fillStyle = integerToColorString(this.getFontColor());
+      context.fillText(
+        character,
+        characterRectangle.position.x,
+        characterRectangle.position.y
+      );
+      return characterRectangle;
+    } else {
+      const y =
+        this.currentCaretPosition.y +
+        this.lineHeight -
+        height -
+        this.getLineSpacing() / 5;
+
+      if (this.ruby) {
+        this.writeRuby(
+          context,
+          "center",
+          "bottom",
+          this.currentCaretPosition.x + width / 2,
+          y
+        );
+      }
+      const characterRectangle = await this.writePosition(width, height);
+      if (!characterRectangle) {
+        return null;
+      }
+      if (this.shadow) {
+        context.fillStyle = integerToColorString(this.getShadowColor());
+        context.fillText(
+          character,
+          characterRectangle.position.x + 2,
+          characterRectangle.position.y + 2
+        );
+      }
+      if (this.font.edge) {
+        context.strokeStyle = integerToColorString(this.getEdgeColor());
+        context.lineWidth = 2;
+        context.strokeText(
+          character,
+          characterRectangle.position.x,
+          characterRectangle.position.y
+        );
+      }
+      context.fillStyle = integerToColorString(this.getFontColor());
+      context.fillText(
+        character,
+        characterRectangle.position.x,
+        characterRectangle.position.y
+      );
+      return characterRectangle;
+    }
+  };
+
+  writeGraph = async (image: HTMLImageElement) => {
     const width = image.naturalWidth;
     const height = image.naturalHeight;
-    const context = this.fore.base && this.fore.base.getContext("2d");
+    const context = this.fore.base?.getContext("2d");
     const height2 = this.font.size || height;
     const ratio = height2 / height;
     const width2 = width * ratio;
-    this.writePosition(width2, height2, () => {
-      context &&
-        context.drawImage(
-          image,
-          this.currentCaretPosition.x,
-          this.currentCaretPosition.y + this.lineHeight - height2,
-          width2,
-          height2
-        );
-    });
+    context?.drawImage(
+      image,
+      this.currentCaretPosition.x,
+      this.currentCaretPosition.y + this.lineHeight - height2,
+      width2,
+      height2
+    );
+    await this.writePosition(width2, height2);
     this.afterSetAlignment = false;
   };
 
   calculateLeftMargin = (remainingWidth?: number): number => {
     const margin = this.getMarginL() + this.getML();
-    if (this.fore.base) {
-      const lineWidth = this.getMW() - margin - this.getMarginR();
-      const context = this.fore.base.getContext("2d");
-      if (context) {
-        context.textAlign = "left";
-        context.textBaseline = "top";
-        context.font = this.getFont();
-        const width = nullFallback(
-          remainingWidth,
-          context.measureText(this.remainingText).width
-        );
-        const fullWidth: boolean =
-          this.currentCaretPosition.x + width > lineWidth;
-        switch (this.textAlignment) {
-          case Alignment.Default:
-          case Alignment.Left: {
-            return margin;
-          }
-          case Alignment.Center: {
-            if (fullWidth) {
-              return margin;
-            } else {
-              return (this.getMW() - width) / 2 + this.getML();
-            }
-          }
-          case Alignment.Right: {
-            if (fullWidth) {
-              return margin;
-            } else {
-              return this.getMW() + this.getML() - this.getMarginR() - width;
-            }
-          }
-        }
+    if (!this.fore.base) {
+      return margin;
+    }
+    const lineWidth = this.getMW() - margin - this.getMarginR();
+    const context = this.fore.base.getContext("2d");
+    if (!context) {
+      return margin;
+    }
+    context.textAlign = "left";
+    context.textBaseline = "top";
+    context.font = this.getFont();
+    const width = nullFallback(
+      remainingWidth,
+      context.measureText(this.remainingText).width
+    );
+    const fullWidth: boolean = this.currentCaretPosition.x + width > lineWidth;
+    if (fullWidth) {
+      return margin;
+    }
+    switch (this.textAlignment) {
+      case Alignment.Default:
+      case Alignment.Left: {
+        return margin;
+      }
+      case Alignment.Center: {
+        return (this.getMW() - width) / 2 + this.getML();
+      }
+      case Alignment.Right: {
+        return this.getMW() + this.getML() - this.getMarginR() - width;
+      }
+      default: {
+        return margin;
       }
     }
-    return margin;
   };
 
   calculateTopMargin = (remainingHeight?: number): number => {
     const margin = this.getMarginT() + this.getMT();
-    if (this.fore.base) {
-      const lineHeight = this.getMH() - margin - this.getMarginB();
-      const context = this.fore.base.getContext("2d");
-      if (context) {
-        context.textAlign = "left";
-        context.textBaseline = "top";
-        context.font = this.getFont();
-        const height = nullFallback(
-          remainingHeight,
-          this.getFontSize() * this.remainingText.length
-        );
-        const fullHeight: boolean =
-          this.currentCaretPosition.y + height > lineHeight;
-        switch (this.textAlignment) {
-          case Alignment.Default:
-          case Alignment.Top: {
-            return margin;
-          }
-          case Alignment.Center: {
-            if (fullHeight) {
-              return margin;
-            } else {
-              return (this.getMH() - height) / 2 + this.getMT();
-            }
-          }
-          case Alignment.Bottom: {
-            if (fullHeight) {
-              return margin;
-            } else {
-              return this.getMH() + this.getMT() - this.getMarginB() - height;
-            }
-          }
+    if (!this.fore.base) {
+      return margin;
+    }
+    const lineHeight = this.getMH() - margin - this.getMarginB();
+    const context = this.fore.base.getContext("2d");
+    if (!context) {
+      return margin;
+    }
+    context.textAlign = "left";
+    context.textBaseline = "top";
+    context.font = this.getFont();
+    const height = nullFallback(
+      remainingHeight,
+      this.getFontSize() * this.remainingText.length
+    );
+    const fullHeight: boolean =
+      this.currentCaretPosition.y + height > lineHeight;
+    switch (this.textAlignment) {
+      case Alignment.Default:
+      case Alignment.Top: {
+        return margin;
+      }
+      case Alignment.Center: {
+        if (fullHeight) {
+          return margin;
+        } else {
+          return (this.getMH() - height) / 2 + this.getMT();
+        }
+      }
+      case Alignment.Bottom: {
+        if (fullHeight) {
+          return margin;
+        } else {
+          return this.getMH() + this.getMT() - this.getMarginB() - height;
         }
       }
     }
@@ -853,22 +861,23 @@ export class MessageLayer extends React.Component<
   };
 
   clearBase = (page: MessageLayerElementSet) => {
-    if (page.base) {
-      const context = page.base.getContext("2d");
-      if (context) {
-        context.clearRect(0, 0, page.base.width, page.base.height);
-        context.fillStyle = integerToColorString(this.getFrameColor());
-        context.globalAlpha = this.getFrameOpacity() / 0xff;
-        if (this.frame) {
-          context.drawImage(this.frame, this.getML(), this.getMT());
-        } else {
-          context.fillRect(
-            this.getML(),
-            this.getMT(),
-            this.getMW(),
-            this.getMH()
-          );
-        }
+    if (!page.base) {
+      return;
+    }
+    const context = page.base.getContext("2d");
+    if (context) {
+      context.clearRect(0, 0, page.base.width, page.base.height);
+      context.fillStyle = integerToColorString(this.getFrameColor());
+      context.globalAlpha = this.getFrameOpacity() / 0xff;
+      if (this.frame) {
+        context.drawImage(this.frame, this.getML(), this.getMT());
+      } else {
+        context.fillRect(
+          this.getML(),
+          this.getMT(),
+          this.getMW(),
+          this.getMH()
+        );
       }
     }
   };
@@ -883,32 +892,25 @@ export class MessageLayer extends React.Component<
     this.lineWidths = [];
     this.currentLine = 0;
     this.clickableAreas = [];
-    while (this.fore.form && this.fore.form.firstChild) {
+    while (this.fore.form?.firstChild) {
       this.fore.form.firstChild.remove();
     }
   };
 
   mouseInClickableArea = (): ClickableAreaCollection | null => {
-    if (this.cursorPosition) {
-      // let hit = false;
-      const mouseInClickableAreas = this.clickableAreas.filter(
-        (clickableArea) => {
-          if (
-            this.cursorPosition &&
-            positionIsInRectangle(this.cursorPosition, clickableArea.area)
-          ) {
-            return true;
-          }
-          return false;
-        }
-      );
-      if (mouseInClickableAreas.length > 0) {
-        return mouseInClickableAreas;
-      } else {
-        return null;
-      }
+    if (!this.cursorPosition) {
+      return null;
     }
-    return null;
+    const mouseInClickableAreas = this.clickableAreas.filter(
+      (clickableArea) =>
+        this.cursorPosition &&
+        positionIsInRectangle(this.cursorPosition, clickableArea.area)
+    );
+    if (mouseInClickableAreas.length > 0) {
+      return mouseInClickableAreas;
+    } else {
+      return null;
+    }
   };
 
   setCursorPosition = (position: Position) => {
@@ -928,69 +930,70 @@ export class MessageLayer extends React.Component<
   };
 
   highlightArea = (clickableArea: ClickableArea) => {
-    if (this.fore.highlight) {
-      const context = this.fore.highlight.getContext("2d");
-      if (context) {
-        context.clearRect(
-          0,
-          0,
-          this.fore.highlight.width,
-          this.fore.highlight.height
-        );
-        context.globalAlpha = 0.2;
-        context.fillStyle = integerToColorString(
-          this.getLinkColor(colorStringToInteger(clickableArea.params.color))
-        );
-        context.fillRect(
-          clickableArea.area.position.x,
-          clickableArea.area.position.y,
-          clickableArea.area.size.width,
-          clickableArea.area.size.height
-        );
-        context.globalAlpha = 1;
-      }
+    if (!this.fore.highlight) {
+      return;
     }
+    const context = this.fore.highlight.getContext("2d");
+    if (!context) {
+      return;
+    }
+    context.clearRect(
+      0,
+      0,
+      this.fore.highlight.width,
+      this.fore.highlight.height
+    );
+    context.globalAlpha = 0.2;
+    context.fillStyle = integerToColorString(
+      this.getLinkColor(colorStringToInteger(clickableArea.params.color))
+    );
+    context.fillRect(
+      clickableArea.area.position.x,
+      clickableArea.area.position.y,
+      clickableArea.area.size.width,
+      clickableArea.area.size.height
+    );
+    context.globalAlpha = 1;
   };
 
   clearHighlight = (page: MessageLayerElementSet) => {
-    if (page.highlight) {
-      const context = page.highlight.getContext("2d");
-      if (context) {
-        context.clearRect(0, 0, page.highlight.width, page.highlight.height);
-      }
+    if (!page.highlight) {
+      return;
+    }
+    const context = page.highlight.getContext("2d");
+    if (context) {
+      context.clearRect(0, 0, page.highlight.width, page.highlight.height);
     }
   };
 
   click = () => {
     const mouseInClickableAreas = this.mouseInClickableArea();
-    if (mouseInClickableAreas) {
-      for (const clickableArea of mouseInClickableAreas) {
-        return clickableArea.params;
-      }
+    if (!mouseInClickableAreas) {
+      return null;
     }
-    return null;
+    for (const clickableArea of mouseInClickableAreas) {
+      return clickableArea.params;
+    }
   };
 
   getSize = () => {
-    if (this.fore.base) {
-      return {
-        width: this.fore.base.offsetWidth,
-        height: this.fore.base.offsetHeight,
-      } as Size;
-    } else {
+    if (!this.fore.base) {
       return null;
     }
+    return {
+      width: this.fore.base.offsetWidth,
+      height: this.fore.base.offsetHeight,
+    } as Size;
   };
 
   getPosition = () => {
-    if (this.fore.base) {
-      return {
-        x: this.fore.base.offsetLeft,
-        y: this.fore.base.offsetTop,
-      } as Position;
-    } else {
+    if (!this.fore.base) {
       return null;
     }
+    return {
+      x: this.fore.base.offsetLeft,
+      y: this.fore.base.offsetTop,
+    } as Position;
   };
 
   getNextChoicePosition = (currentPosition: Position) => {

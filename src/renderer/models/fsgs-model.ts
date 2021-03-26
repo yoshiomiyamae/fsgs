@@ -1,6 +1,6 @@
-import {FileTypeResult} from 'file-type';
+import { FileTypeResult } from "file-type";
 
-export type Indices = {[key: string]: number};
+export type Indices = { [key: string]: number };
 export class Script {
   scenario: OperationCollection;
   labelIndices: Indices;
@@ -18,7 +18,7 @@ export interface Operation {
   params: ParameterCollection;
 }
 
-export type ParameterCollection = {[key: string]: any};
+export type ParameterCollection = { [key: string]: any };
 
 export interface Config {
   configVersion?: string;
@@ -32,7 +32,7 @@ export interface Config {
   historyLayerConfig?: HistoryLayerConfig;
 }
 
-export interface WindowConfig{
+export interface WindowConfig {
   scWidth?: number;
   scHeight?: number;
   readOnlyMode?: boolean;
@@ -58,7 +58,7 @@ export interface WindowConfig{
   numSEBuffers?: number;
   numMovies?: number;
   numCharacterLayers?: number;
-  scPositionX?: {[key: string]: number};
+  scPositionX?: { [key: string]: number };
   numMessageLayers?: number;
   initialMessageLayerVisible?: boolean;
   numBookMarks?: number;
@@ -123,7 +123,7 @@ export interface MessageLayerConfig {
 
 export interface ImageLayerConfig {
   page: Page;
-  key:  number;
+  key: number;
   mode: SyntheticMode;
   grayscale: boolean;
   rgamma: number;
@@ -155,8 +155,34 @@ export interface ImageLayerConfig {
   // pos:
 }
 
-export type Page = 'back' | 'fore';
-export type SyntheticMode = 'alpha' | 'transp' | 'opaque' | 'rect' | 'add' | 'sub' | 'mul' | 'dodge' | 'darken' | 'lighten' | 'screen' | 'psadd' | 'pssub' | 'psmul' | 'psscreen' | 'psoverlay' | 'pshlight' | 'psslight' | 'psdodge' | 'psdodge5' | 'psburn' | 'pslighten' | 'psdarken' | 'psdiff' | 'psdiff5' | 'psexcl';
+export type Page = "back" | "fore";
+export type SyntheticMode =
+  | "alpha"
+  | "transp"
+  | "opaque"
+  | "rect"
+  | "add"
+  | "sub"
+  | "mul"
+  | "dodge"
+  | "darken"
+  | "lighten"
+  | "screen"
+  | "psadd"
+  | "pssub"
+  | "psmul"
+  | "psscreen"
+  | "psoverlay"
+  | "pshlight"
+  | "psslight"
+  | "psdodge"
+  | "psdodge5"
+  | "psburn"
+  | "pslighten"
+  | "psdarken"
+  | "psdiff"
+  | "psdiff5"
+  | "psexcl";
 
 export interface BgmConfig {
   doubleBuffered?: boolean;
@@ -235,29 +261,29 @@ export interface Font {
 }
 
 export enum Direction {
-  Left = 'left',
-  Right = 'right',
-  Top = 'top',
-  Bottom = 'bottom',
+  Left = "left",
+  Right = "right",
+  Top = "top",
+  Bottom = "bottom",
 }
 
 export enum Alignment {
-  Left = 'left',
-  Right = 'right',
-  Top = 'top',
-  Bottom = 'bottom',
-  Center = 'center',
-  Default = 'default',
+  Left = "left",
+  Right = "right",
+  Top = "top",
+  Bottom = "bottom",
+  Center = "center",
+  Default = "default",
 }
 
 export enum StayValue {
-  StayFore = 'stayfore',
-  StayBack = 'stayback',
-  NoStay = 'nostay',
+  StayFore = "stayfore",
+  StayBack = "stayback",
+  NoStay = "nostay",
 }
 
 export interface SetImageArgs {
-  layer: 'base' | 'graph' | 'message' | 'transition';
+  layer: "base" | "graph" | "message" | "transition";
   page?: LayerPages;
   layerNumber?: number;
   left?: number;
@@ -266,7 +292,7 @@ export interface SetImageArgs {
 }
 
 export interface SetRuleTransitionArgs {
-  layer: 'base' | 'message';
+  layer: "base" | "message";
   layerNumber: number;
   time: number;
   vague: number;
@@ -304,10 +330,10 @@ export interface StackItem {
   programCounter: number;
 }
 
-export enum LayerTypes{
-  Base = 'base',
-  Message = 'message',
-  Character = 'character',
+export enum LayerTypes {
+  Base = "base",
+  Message = "message",
+  Character = "character",
 }
 
 export interface TransitionSetting {
@@ -318,6 +344,6 @@ export interface TransitionSetting {
 }
 
 export enum LayerPages {
-  Fore = 'fore',
-  Back = 'back',
+  Fore = "fore",
+  Back = "back",
 }

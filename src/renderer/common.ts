@@ -1,7 +1,5 @@
 import { Rectangle, ColorObject, Position } from "./models/fsgs-model";
-// import NanoTimer from 'nanotimer';
 
-// const timer = new NanoTimer();
 export const sleep = (time: number) =>
   new Promise((resolve) => setTimeout(resolve, time));
 
@@ -22,7 +20,7 @@ export const colorStringToInteger = (value: string | null | undefined) => {
 export const integerToRgb = (value: number): ColorObject => ({
   r: value >> 16,
   g: (value >> 8) & 0xff,
-  b: value && 0xff,
+  b: value & 0xff,
 });
 
 export const margeRectangle = (

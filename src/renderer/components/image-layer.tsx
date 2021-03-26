@@ -289,14 +289,10 @@ export class ImageLayer extends React.Component<ImageLayerProps> {
     this.bufferCanvas.width = this.dom.width;
     this.bufferCanvas.height = this.dom.height;
     const buffer = this.bufferCanvas.getContext("2d");
-    console.log(buffer);
-    console.log(context);
-    console.log(this.backImage);
-    console.log(this.foreImage);
     if (!buffer || !context || !(this.backImage || this.foreImage)) {
       return;
     }
-    for (let i = 0x20; i < 0x80; i += 2) {
+    for (let i = 0; i < 0x80; i += 2) {
       await sleep(time / 0x80);
       if (this.backImage) {
         buffer.globalAlpha = i / 0x80;
@@ -372,10 +368,11 @@ export class ImageLayer extends React.Component<ImageLayerProps> {
   };
 
   clear = () => {
-    const context = this.dom && this.dom.getContext("2d");
-    this.dom &&
-      context &&
-      context.clearRect(0, 0, this.dom.width, this.dom.height);
+    if (!this.dom) {
+      return;
+    }
+    const context = this.dom.getContext("2d");
+    context?.clearRect(0, 0, this.dom.width, this.dom.height);
   };
 
   setImage = (image: HTMLImageElement, page: LayerPages) => {
@@ -389,7 +386,7 @@ export class ImageLayer extends React.Component<ImageLayerProps> {
         this.foreImage = image;
         if (this.dom) {
           const context = this.dom.getContext("2d");
-          context && context.drawImage(image, 0, 0);
+          context?.drawImage(image, 0, 0);
         }
         break;
       }
