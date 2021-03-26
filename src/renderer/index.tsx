@@ -3,9 +3,6 @@ import { render } from "react-dom";
 
 import Fsgs from "./containers/fsgs";
 
-// import './index.css';
-// import './initialize';
-
 import defaultConfig from "./configs/config";
 
 render(

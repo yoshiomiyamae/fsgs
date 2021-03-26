@@ -65,34 +65,36 @@ export class ImageLayer extends React.Component<ImageLayerProps> {
   calculateFps = () => {
     this.frameCount++;
     const now = Date.now();
-    if (now - this.previousFrameTime >= 1000) {
-      const frameRate =
-        (this.frameCount * 1000) / (now - this.previousFrameTime);
-      this.previousFrameTime = now;
-      this.frameCount = 0;
-      return Math.round(frameRate);
+    if (now - this.previousFrameTime < 1000) {
+      return null;
     }
-    return null;
+    const frameRate = (this.frameCount * 1000) / (now - this.previousFrameTime);
+    this.previousFrameTime = now;
+    this.frameCount = 0;
+    return Math.round(frameRate);
   };
 
   showFps = () => {
-    if (this.dom) {
-      const context = this.dom.getContext("2d");
-      if (context && this.props.showFrameRate) {
-        const frameRate = this.calculateFps();
-        if (frameRate) {
-          const frameRateText = `${frameRate}`;
-          context.textAlign = "left";
-          context.textBaseline = "top";
-          context.font = "10px";
-          const width = context.measureText(frameRateText).width;
-          context.fillStyle = "black";
-          context.fillRect(0, 0, width, 10);
-          context.fillStyle = "lime";
-          context.fillText(frameRateText, 0, 0);
-        }
-      }
+    if (!this.dom) {
+      return;
     }
+    const context = this.dom.getContext("2d");
+    if (!context || !this.props.showFrameRate) {
+      return;
+    }
+    const frameRate = this.calculateFps();
+    if (!frameRate) {
+      return;
+    }
+    const frameRateText = `${frameRate}`;
+    context.textAlign = "left";
+    context.textBaseline = "top";
+    context.font = "10px";
+    const width = context.measureText(frameRateText).width;
+    context.fillStyle = "black";
+    context.fillRect(0, 0, width, 10);
+    context.fillStyle = "lime";
+    context.fillText(frameRateText, 0, 0);
   };
 
   universalTransition = async (time: number, setting: TransitionSetting) => {
@@ -184,93 +186,95 @@ export class ImageLayer extends React.Component<ImageLayerProps> {
     switch (from) {
       case Direction.Left:
       case Direction.Right: {
-        if (this.backImage && this.foreImage) {
-          for (let x = 0; x <= this.backImage.width; x += 5) {
-            await sleep(time / this.backImage.width);
-            switch (stay) {
-              case StayValue.StayFore: {
-                const x2 =
-                  from === Direction.Left
-                    ? x - this.backImage.width
-                    : this.backImage.width - x;
-                buffer.drawImage(this.foreImage, 0, 0);
-                buffer.drawImage(this.backImage, x2, 0);
-                break;
-              }
-              case StayValue.StayBack: {
-                const x2 = from === Direction.Left ? -x : x;
-                buffer.drawImage(this.backImage, 0, 0);
-                buffer.drawImage(this.foreImage, x2, 0);
-                break;
-              }
-              case StayValue.NoStay: {
-                const x2 = from === Direction.Left ? x : -x;
-                const x3 =
-                  from === Direction.Left
-                    ? x - this.backImage.width
-                    : this.backImage.width - x;
-                buffer.drawImage(this.foreImage, x2, 0);
-                buffer.drawImage(this.backImage, x3, 0);
-                break;
-              }
+        if (!this.backImage || !this.foreImage) {
+          return;
+        }
+        for (let x = 0; x <= this.backImage.width; x += 5) {
+          await sleep(time / this.backImage.width);
+          switch (stay) {
+            case StayValue.StayFore: {
+              const x2 =
+                from === Direction.Left
+                  ? x - this.backImage.width
+                  : this.backImage.width - x;
+              buffer.drawImage(this.foreImage, 0, 0);
+              buffer.drawImage(this.backImage, x2, 0);
+              break;
             }
-            context.putImageData(
-              buffer.getImageData(
-                0,
-                0,
-                this.bufferCanvas.width,
-                this.bufferCanvas.height
-              ),
-              0,
-              0
-            );
+            case StayValue.StayBack: {
+              const x2 = from === Direction.Left ? -x : x;
+              buffer.drawImage(this.backImage, 0, 0);
+              buffer.drawImage(this.foreImage, x2, 0);
+              break;
+            }
+            case StayValue.NoStay: {
+              const x2 = from === Direction.Left ? x : -x;
+              const x3 =
+                from === Direction.Left
+                  ? x - this.backImage.width
+                  : this.backImage.width - x;
+              buffer.drawImage(this.foreImage, x2, 0);
+              buffer.drawImage(this.backImage, x3, 0);
+              break;
+            }
           }
+          context.putImageData(
+            buffer.getImageData(
+              0,
+              0,
+              this.bufferCanvas.width,
+              this.bufferCanvas.height
+            ),
+            0,
+            0
+          );
         }
         break;
       }
       case Direction.Top:
       case Direction.Bottom: {
-        if (this.backImage && this.foreImage) {
-          for (let y = 0; y <= this.backImage.height; y += 5) {
-            await sleep(time / this.backImage.height);
-            switch (stay) {
-              case StayValue.StayFore: {
-                const y2 =
-                  from === Direction.Top
-                    ? y - this.backImage.height
-                    : this.backImage.height - y;
-                buffer.drawImage(this.foreImage, 0, 0);
-                buffer.drawImage(this.backImage, 0, y2);
-                break;
-              }
-              case StayValue.StayBack: {
-                const y2 = from === Direction.Top ? -y : y;
-                buffer.drawImage(this.backImage, 0, 0);
-                buffer.drawImage(this.foreImage, 0, y2);
-                break;
-              }
-              case StayValue.NoStay: {
-                const y2 = from === Direction.Top ? y : -y;
-                const y3 =
-                  from === Direction.Top
-                    ? y - this.backImage.height
-                    : this.backImage.height - y;
-                buffer.drawImage(this.foreImage, 0, y2);
-                buffer.drawImage(this.backImage, 0, y3);
-                break;
-              }
+        if (!this.backImage || !this.foreImage) {
+          return;
+        }
+        for (let y = 0; y <= this.backImage.height; y += 5) {
+          await sleep(time / this.backImage.height);
+          switch (stay) {
+            case StayValue.StayFore: {
+              const y2 =
+                from === Direction.Top
+                  ? y - this.backImage.height
+                  : this.backImage.height - y;
+              buffer.drawImage(this.foreImage, 0, 0);
+              buffer.drawImage(this.backImage, 0, y2);
+              break;
             }
-            context.putImageData(
-              buffer.getImageData(
-                0,
-                0,
-                this.bufferCanvas.width,
-                this.bufferCanvas.height
-              ),
-              0,
-              0
-            );
+            case StayValue.StayBack: {
+              const y2 = from === Direction.Top ? -y : y;
+              buffer.drawImage(this.backImage, 0, 0);
+              buffer.drawImage(this.foreImage, 0, y2);
+              break;
+            }
+            case StayValue.NoStay: {
+              const y2 = from === Direction.Top ? y : -y;
+              const y3 =
+                from === Direction.Top
+                  ? y - this.backImage.height
+                  : this.backImage.height - y;
+              buffer.drawImage(this.foreImage, 0, y2);
+              buffer.drawImage(this.backImage, 0, y3);
+              break;
+            }
           }
+          context.putImageData(
+            buffer.getImageData(
+              0,
+              0,
+              this.bufferCanvas.width,
+              this.bufferCanvas.height
+            ),
+            0,
+            0
+          );
         }
         break;
       }

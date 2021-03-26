@@ -357,22 +357,21 @@ export class Fsgs extends React.Component<FsgsProps> {
 
   parseLayerNumber = (messageLayerName: string | number): LayerNumber => {
     const result = parseInt(`${messageLayerName}`);
-    if (isNaN(result)) {
-      if (messageLayerName === "base") {
-        return {
-          type: LayerTypes.Base,
-          number: parseInt(`${messageLayerName}`.substring(7)),
-        };
-      } else {
-        return {
-          type: LayerTypes.Message,
-          number: parseInt(`${messageLayerName}`.substring(7)),
-        };
-      }
-    } else {
+    if (!isNaN(result)) {
       return {
         type: LayerTypes.Character,
         number: result,
+      };
+    }
+    if (messageLayerName === "base") {
+      return {
+        type: LayerTypes.Base,
+        number: parseInt(`${messageLayerName}`.substring(7)),
+      };
+    } else {
+      return {
+        type: LayerTypes.Message,
+        number: parseInt(`${messageLayerName}`.substring(7)),
       };
     }
   };
@@ -495,190 +494,191 @@ export class Fsgs extends React.Component<FsgsProps> {
         return "";
       }, "");
     }
-    if (!this.ignoreIf && !(operation.action in ["else", "elseif", "endif"])) {
-      switch (operation.action) {
-        case "ch": {
-          this.ch(operation.params.text);
-          break;
-        }
-        case "cm": {
-          this.cm();
-          break;
-        }
-        case "image": {
-          await this.image(operation.params);
-          break;
-        }
-        case "l": {
-          this.l();
-          break;
-        }
-        case "r": {
-          this.r();
-          break;
-        }
-        case "p": {
-          this.p();
-          break;
-        }
-        case "wait": {
-          await this.wait(+operation.params.time);
-          break;
-        }
-        case "text": {
-          this.text(operation.params.text);
-          break;
-        }
-        case "return": {
-          this.return();
-          break;
-        }
-        case "endmacro": {
-          this.endmacro();
-          break;
-        }
-        case "macro": {
-          this.macro();
-          break;
-        }
-        case "font": {
-          this.font(operation.params);
-          break;
-        }
-        case "resetfont": {
-          this.resetfont();
-          break;
-        }
-        case "resetstyle": {
-          this.resetstyle();
-          break;
-        }
-        case "style": {
-          this.style(operation.params.align);
-          break;
-        }
-        case "graph": {
-          await this.graph(operation.params.storage);
-          break;
-        }
-        case "eval": {
-          this.eval(operation.params.exp);
-          break;
-        }
-        case "s": {
-          this.s();
-          break;
-        }
-        case "link": {
-          this.link(operation.params);
-          break;
-        }
-        case "endlink": {
-          this.endlink();
-          break;
-        }
-        case "label": {
-          this.label(operation);
-          break;
-        }
-        case "jump": {
-          this.jump(
-            operation.params.storage,
-            operation.params.target,
-            operation.params.cond
-          );
-          break;
-        }
-        case "edit": {
-          this.edit(operation.params);
-          break;
-        }
-        case "emb": {
-          this.emb(operation.params.exp);
-          break;
-        }
-        case "nowait": {
-          this.nowait();
-          break;
-        }
-        case "endnowait": {
-          this.endnowait();
-          break;
-        }
-        case "layopt": {
-          this.layopt(operation.params);
-          break;
-        }
-        case "ruby": {
-          this.ruby(operation.params.text);
-          break;
-        }
-        case "position": {
-          await this.position(operation.params);
-          break;
-        }
-        case "playbgm": {
-          await this.playbgm(operation.params);
-          break;
-        }
-        case "stopbgm": {
-          this.stopbgm();
-          break;
-        }
-        case "current": {
-          this.current(operation.params);
-          break;
-        }
-        case "startanchor": {
-          this.startanchor(operation.params.enabled);
-          break;
-        }
-        case "record": {
-          this.record();
-          break;
-        }
-        case "goback": {
-          this.goBack();
-          break;
-        }
-        case "gotostart": {
-          this.goToStart();
-          break;
-        }
-        case "backlay": {
-          this.backlay(operation.params);
-          break;
-        }
-        case "trans": {
-          await this.trans(operation.params);
-          break;
-        }
-        case "wt": {
-          this.wt();
-          break;
-        }
-        case "if":
-        case "elseif": {
-          this.if(operation.params.exp);
-          break;
-        }
-        case "else":
-        case "endif": {
-          this.endif();
-          break;
-        }
-        case "call": {
-          this.call(operation.params);
-          break;
-        }
-        case "inlineScript": {
-          this.eval(operation.params.script);
-          break;
-        }
-        default: {
-          this.default(operation);
-          break;
-        }
+    if (this.ignoreIf || operation.action in ["else", "elseif", "endif"]) {
+      return;
+    }
+    switch (operation.action) {
+      case "ch": {
+        this.ch(operation.params.text);
+        break;
+      }
+      case "cm": {
+        this.cm();
+        break;
+      }
+      case "image": {
+        await this.image(operation.params);
+        break;
+      }
+      case "l": {
+        this.l();
+        break;
+      }
+      case "r": {
+        this.r();
+        break;
+      }
+      case "p": {
+        this.p();
+        break;
+      }
+      case "wait": {
+        await this.wait(+operation.params.time);
+        break;
+      }
+      case "text": {
+        this.text(operation.params.text);
+        break;
+      }
+      case "return": {
+        this.return();
+        break;
+      }
+      case "endmacro": {
+        this.endmacro();
+        break;
+      }
+      case "macro": {
+        this.macro();
+        break;
+      }
+      case "font": {
+        this.font(operation.params);
+        break;
+      }
+      case "resetfont": {
+        this.resetfont();
+        break;
+      }
+      case "resetstyle": {
+        this.resetstyle();
+        break;
+      }
+      case "style": {
+        this.style(operation.params.align);
+        break;
+      }
+      case "graph": {
+        await this.graph(operation.params.storage);
+        break;
+      }
+      case "eval": {
+        this.eval(operation.params.exp);
+        break;
+      }
+      case "s": {
+        this.s();
+        break;
+      }
+      case "link": {
+        this.link(operation.params);
+        break;
+      }
+      case "endlink": {
+        this.endlink();
+        break;
+      }
+      case "label": {
+        this.label(operation);
+        break;
+      }
+      case "jump": {
+        this.jump(
+          operation.params.storage,
+          operation.params.target,
+          operation.params.cond
+        );
+        break;
+      }
+      case "edit": {
+        this.edit(operation.params);
+        break;
+      }
+      case "emb": {
+        this.emb(operation.params.exp);
+        break;
+      }
+      case "nowait": {
+        this.nowait();
+        break;
+      }
+      case "endnowait": {
+        this.endnowait();
+        break;
+      }
+      case "layopt": {
+        this.layopt(operation.params);
+        break;
+      }
+      case "ruby": {
+        this.ruby(operation.params.text);
+        break;
+      }
+      case "position": {
+        await this.position(operation.params);
+        break;
+      }
+      case "playbgm": {
+        await this.playbgm(operation.params);
+        break;
+      }
+      case "stopbgm": {
+        this.stopbgm();
+        break;
+      }
+      case "current": {
+        this.current(operation.params);
+        break;
+      }
+      case "startanchor": {
+        this.startanchor(operation.params.enabled);
+        break;
+      }
+      case "record": {
+        this.record();
+        break;
+      }
+      case "goback": {
+        this.goBack();
+        break;
+      }
+      case "gotostart": {
+        this.goToStart();
+        break;
+      }
+      case "backlay": {
+        this.backlay(operation.params);
+        break;
+      }
+      case "trans": {
+        await this.trans(operation.params);
+        break;
+      }
+      case "wt": {
+        this.wt();
+        break;
+      }
+      case "if":
+      case "elseif": {
+        this.if(operation.params.exp);
+        break;
+      }
+      case "else":
+      case "endif": {
+        this.endif();
+        break;
+      }
+      case "call": {
+        this.call(operation.params);
+        break;
+      }
+      case "inlineScript": {
+        this.eval(operation.params.script);
+        break;
+      }
+      default: {
+        this.default(operation);
+        break;
       }
     }
   };
@@ -701,21 +701,20 @@ export class Fsgs extends React.Component<FsgsProps> {
 
   getCanvasPosition = (pagePosition: Position) => {
     const baseLayerSize = this.baseLayer && this.baseLayer.getSize();
-    if (baseLayerSize) {
-      const width = this.getScWidth();
-      const height = this.getScHeight();
-      const canvasPosition: Position = {
-        x: (pagePosition.x / baseLayerSize.width) * width,
-        y: (pagePosition.y / baseLayerSize.height) * height,
-      };
-
-      return canvasPosition;
-    } else {
+    if (!baseLayerSize) {
       return {
         x: 0,
         y: 0,
       } as Position;
     }
+    const width = this.getScWidth();
+    const height = this.getScHeight();
+    const canvasPosition: Position = {
+      x: (pagePosition.x / baseLayerSize.width) * width,
+      y: (pagePosition.y / baseLayerSize.height) * height,
+    };
+
+    return canvasPosition;
   };
 
   getProgramCounter = (target: string | number) => {
@@ -739,42 +738,44 @@ export class Fsgs extends React.Component<FsgsProps> {
     console.log(
       `storage: ${storage}, target: ${target}, condition: ${condition}, currentScript: ${this.currentScriptName}, offset: ${offset}`
     );
-    if (!condition || eval(condition)) {
-      if (storage && !target) {
-        if (storage !== this.currentScriptName) {
-          this.loadScript(storage, 0);
-        } else {
-          this.programCounter = 0;
-        }
-      } else if (storage && target) {
-        if (storage !== this.currentScriptName) {
-          this.loadScript(storage, target, 1);
-        } else {
-          this.programCounter = this.getProgramCounter(target);
-        }
-      } else if (!storage && target) {
-        this.programCounter = this.getProgramCounter(target) + (offset || 0);
+    if (condition && !eval(condition)) {
+      this.return;
+    }
+    if (storage && !target) {
+      if (storage !== this.currentScriptName) {
+        this.loadScript(storage, 0);
       } else {
         this.programCounter = 0;
       }
-      this.clickWaiting = false;
-      this.clickWaitingL = false;
-      this.clickWaitingS = false;
-      this.clickWaitingP = false;
+    } else if (storage && target) {
+      if (storage !== this.currentScriptName) {
+        this.loadScript(storage, target, 1);
+      } else {
+        this.programCounter = this.getProgramCounter(target);
+      }
+    } else if (!storage && target) {
+      this.programCounter = this.getProgramCounter(target) + (offset || 0);
+    } else {
+      this.programCounter = 0;
     }
+    this.clickWaiting = false;
+    this.clickWaitingL = false;
+    this.clickWaitingS = false;
+    this.clickWaitingP = false;
   };
 
   eval = (script?: string) => {
-    if (script) {
-      try {
-        const transpiledScript = ts.transpile(script);
-        console.log(`eval(${transpiledScript})`);
-        const result = eval(transpiledScript);
-        console.log("result", result);
-        return result;
-      } catch (e) {
-        console.log(e);
-      }
+    if (!script) {
+      return null;
+    }
+    try {
+      const transpiledScript = ts.transpile(script);
+      console.log(`eval(${transpiledScript})`);
+      const result = eval(transpiledScript);
+      console.log("result", result);
+      return result;
+    } catch (e) {
+      console.log(e);
     }
   };
 
@@ -787,31 +788,33 @@ export class Fsgs extends React.Component<FsgsProps> {
         } else {
           this.click();
         }
-        break;
+        return;
       }
       case "Escape": {
         const visible = await window.api.window.isMenuBarVisible();
         await window.api.window.setMenuBarVisibility(!visible);
+        return;
       }
       case "ArrowUp": {
         const messageLayer = this.messageLayers[this.currentMessageLayer];
-        if (messageLayer) {
-          this.currentMousePosition = messageLayer.getPreviousChoicePosition(
-            this.currentMousePosition
-          );
-          messageLayer.setCursorPosition(this.currentMousePosition);
+        if (!messageLayer) {
+          return;
         }
-        break;
+        this.currentMousePosition = messageLayer.getPreviousChoicePosition(
+          this.currentMousePosition
+        );
+        messageLayer.setCursorPosition(this.currentMousePosition);
       }
       case "ArrowDown": {
         const messageLayer = this.messageLayers[this.currentMessageLayer];
-        if (messageLayer) {
-          this.currentMousePosition = messageLayer.getNextChoicePosition(
-            this.currentMousePosition
-          );
-          messageLayer.setCursorPosition(this.currentMousePosition);
+        if (!messageLayer) {
+          return;
         }
-        break;
+        this.currentMousePosition = messageLayer.getNextChoicePosition(
+          this.currentMousePosition
+        );
+        messageLayer.setCursorPosition(this.currentMousePosition);
+        return;
       }
     }
   };
@@ -837,16 +840,17 @@ export class Fsgs extends React.Component<FsgsProps> {
   };
 
   backlay = (params: ParameterCollection) => {
-    if (params.layer) {
-      const layerNumber = this.parseLayerNumber(params.layer);
-      const layer =
-        layerNumber.type === LayerTypes.Base
-          ? this.baseLayer
-          : layerNumber.type === LayerTypes.Message
-          ? this.messageLayers[layerNumber.number]
-          : this.characterLayers[layerNumber.number];
-      layer && layer.copyForeToBack();
+    if (!params.layer) {
+      return;
     }
+    const layerNumber = this.parseLayerNumber(params.layer);
+    const layer =
+      layerNumber.type === LayerTypes.Base
+        ? this.baseLayer
+        : layerNumber.type === LayerTypes.Message
+        ? this.messageLayers[layerNumber.number]
+        : this.characterLayers[layerNumber.number];
+    layer && layer.copyForeToBack();
   };
 
   ch = (text: string) => {
@@ -873,7 +877,7 @@ export class Fsgs extends React.Component<FsgsProps> {
           layer: params.layer,
           page: params.page,
         });
-        break;
+        return;
       }
       default: {
         const layerNumber = +params.layer;
@@ -890,7 +894,7 @@ export class Fsgs extends React.Component<FsgsProps> {
           left: params.left,
           top: params.top,
         });
-        break;
+        return;
       }
     }
   };
@@ -1008,11 +1012,12 @@ export class Fsgs extends React.Component<FsgsProps> {
   };
 
   endlink = () => {
-    if (this.linkParams) {
-      const messageLayer = this.messageLayers[this.currentMessageLayer];
-      messageLayer?.setLink(this.linkParams);
-      this.linkParams = null;
+    if (!this.linkParams) {
+      return;
     }
+    const messageLayer = this.messageLayers[this.currentMessageLayer];
+    messageLayer?.setLink(this.linkParams);
+    this.linkParams = null;
   };
 
   label = (operation: Operation) => {
@@ -1046,65 +1051,69 @@ export class Fsgs extends React.Component<FsgsProps> {
   };
 
   layopt = (params: ParameterCollection) => {
-    if (params.layer) {
-      const layerName = this.parseLayerNumber(params.layer);
-      const layer =
-        layerName.type === LayerTypes.Message
-          ? this.messageLayers[layerName.number]
-          : this.characterLayers[layerName.number];
-      if (layer) {
-        if (params.visible) {
-          layer.setVisible(params.visible === "true");
-        }
-        if (params.opacity) {
-          layer.setOpacity(parseInt(params.opacity) / 0xff);
-        }
-        if (
-          params.page &&
-          !(layerName.type === LayerTypes.Message && isNaN(layerName.number))
-        ) {
-        }
+    if (params.layer === null || params === undefined) {
+      return;
+    }
+    const layerName = this.parseLayerNumber(params.layer);
+    const layer =
+      layerName.type === LayerTypes.Message
+        ? this.messageLayers[layerName.number]
+        : this.characterLayers[layerName.number];
+    if (layer) {
+      if (params.visible) {
+        layer.setVisible(params.visible === "true");
+      }
+      if (params.opacity) {
+        layer.setOpacity(parseInt(params.opacity) / 0xff);
+      }
+      if (
+        params.page &&
+        !(layerName.type === LayerTypes.Message && isNaN(layerName.number))
+      ) {
       }
     }
   };
 
   ruby = (text: string) => {
-    if (text) {
-      const messageLayer = this.messageLayers[this.currentMessageLayer];
-      messageLayer?.setRuby(text);
+    if (!text) {
+      return;
     }
+    const messageLayer = this.messageLayers[this.currentMessageLayer];
+    messageLayer?.setRuby(text);
   };
 
   position = async (params: ParameterCollection) => {
     const messageLayer = this.messageLayers[this.currentMessageLayer];
-    if (messageLayer) {
-      if (params.frame) {
-        const data = await window.api.getImage(`image/${params.frame}`);
-        this.setImage({
-          data,
-          layer: "message",
-          layerNumber: 0,
-        });
-      }
-      params.vertical && messageLayer.setVertical(params.vertical === "true");
-      params.left && messageLayer.setLeft(parseInt(params.left));
-      params.top && messageLayer.setTop(parseInt(params.top));
-      params.marginl && messageLayer.setMarginL(parseInt(params.marginl));
-      params.margint && messageLayer.setMarginT(parseInt(params.margint));
-      params.marginr && messageLayer.setMarginR(parseInt(params.marginr));
-      params.marginb && messageLayer.setMarginB(parseInt(params.marginb));
-      messageLayer.clear();
+    if (!messageLayer) {
+      return;
     }
+    if (params.frame) {
+      const data = await window.api.getImage(`image/${params.frame}`);
+      this.setImage({
+        data,
+        layer: "message",
+        layerNumber: 0,
+      });
+    }
+    params.vertical && messageLayer.setVertical(params.vertical === "true");
+    params.left && messageLayer.setLeft(parseInt(params.left));
+    params.top && messageLayer.setTop(parseInt(params.top));
+    params.marginl && messageLayer.setMarginL(parseInt(params.marginl));
+    params.margint && messageLayer.setMarginT(parseInt(params.margint));
+    params.marginr && messageLayer.setMarginR(parseInt(params.marginr));
+    params.marginb && messageLayer.setMarginB(parseInt(params.marginb));
+    messageLayer.clear();
   };
 
   playbgm = async (params: ParameterCollection) => {
     const data = await window.api.getAudio(`bgm/${params.storage}`);
-    if (this.audio) {
-      this.audio.preload = "none";
-      this.audio.src = data;
-      this.audio.loop = params.loop === "true";
-      this.audio.play();
+    if (!this.audio) {
+      return;
     }
+    this.audio.preload = "none";
+    this.audio.src = data;
+    this.audio.loop = params.loop === "true";
+    this.audio.play();
   };
 
   stopbgm = () => {
@@ -1112,12 +1121,13 @@ export class Fsgs extends React.Component<FsgsProps> {
   };
 
   current = (params: ParameterCollection) => {
-    if (params.layer) {
-      this.currentMessageLayer = this.parseLayerNumber(params.layer).number;
-      const messageLayer = this.messageLayers[this.currentMessageLayer];
-      if (messageLayer) {
-        messageLayer.setCurrentPage(params.page || "fore");
-      }
+    if (!params.layer) {
+      return;
+    }
+    this.currentMessageLayer = this.parseLayerNumber(params.layer).number;
+    const messageLayer = this.messageLayers[this.currentMessageLayer];
+    if (messageLayer) {
+      messageLayer.setCurrentPage(params.page || "fore");
     }
   };
 

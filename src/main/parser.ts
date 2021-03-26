@@ -199,23 +199,24 @@ export class FagParser {
       }
     }
 
-    if (temp !== "") {
-      if (inScript) {
-        output.push(<Operation>{
-          action: Actions.InlineScript,
-          params: {
-            script: temp,
-          },
-        });
-      } else {
-        output.push(<Operation>{
-          action: Actions.Text,
-          params: {
-            text: temp,
-          },
-        });
-        temp = "";
-      }
+    if (temp === "") {
+      return output;
+    }
+    if (inScript) {
+      output.push(<Operation>{
+        action: Actions.InlineScript,
+        params: {
+          script: temp,
+        },
+      });
+    } else {
+      output.push(<Operation>{
+        action: Actions.Text,
+        params: {
+          text: temp,
+        },
+      });
+      temp = "";
     }
 
     return output;

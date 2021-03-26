@@ -267,7 +267,7 @@ export class MessageLayer extends React.Component<
   setFontEdge = (edge: string | boolean) => {
     this.font = {
       ...this.font,
-      edge: ("" + edge).toLocaleLowerCase() === "true",
+      edge: ("" + edge).toLowerCase() === "true",
     };
   };
 
@@ -288,7 +288,7 @@ export class MessageLayer extends React.Component<
   setFontShadow = (shadow: string | boolean) => {
     this.font = {
       ...this.font,
-      shadow: ("" + shadow).toLocaleLowerCase() === "true",
+      shadow: ("" + shadow).toLowerCase() === "true",
     };
   };
 
@@ -483,43 +483,32 @@ export class MessageLayer extends React.Component<
   };
 
   resizeEdit = () => {
-    if (this.back.form) {
-      const actualSize = this.getSize();
-      if (actualSize) {
-        const ratio = actualSize.width / this.props.width;
-        for (const element of Array.prototype.slice.call(
-          this.back.form.children
-        )) {
-          const element2 = element as HTMLElement;
-          element2.style.transform = `scale(${ratio})`;
-          element2.style.left = `${
-            +nullFallback(element2.dataset["x"], 0) * ratio
-          }px`;
-          element2.style.top = `${
-            +nullFallback(element2.dataset["y"], 0) * ratio
-          }px`;
-        }
-      }
-    }
-    if (this.fore.form) {
-      const actualSize = this.getSize();
-      if (actualSize) {
-        const ratio = actualSize.width / this.props.width;
-        for (const element of Array.prototype.slice.call(
-          this.fore.form.children
-        )) {
-          const element2 = element as HTMLElement;
-          element2.style.transform = `scale(${ratio})`;
-          element2.style.left = `${
-            +nullFallback(element2.dataset["x"], 0) * ratio
-          }px`;
-          element2.style.top = `${
-            +nullFallback(element2.dataset["y"], 0) * ratio
-          }px`;
-        }
-      }
-    }
+    this.messageLayerElementSetResizeEdit(this.back);
+    this.messageLayerElementSetResizeEdit(this.fore);
   };
+
+  private messageLayerElementSetResizeEdit = (messageLayerElementSet: MessageLayerElementSet) => {
+    if (!messageLayerElementSet.form) {
+      return;
+        }
+      const actualSize = this.getSize();
+    if (!actualSize) {
+      return;
+        }
+        const ratio = actualSize.width / this.props.width;
+        for (const element of Array.prototype.slice.call(
+      messageLayerElementSet.form.children
+        )) {
+          const element2 = element as HTMLElement;
+          element2.style.transform = `scale(${ratio})`;
+          element2.style.left = `${
+            +nullFallback(element2.dataset["x"], 0) * ratio
+          }px`;
+          element2.style.top = `${
+            +nullFallback(element2.dataset["y"], 0) * ratio
+          }px`;
+        }
+      }
 
   transition = async (
     method: string,
