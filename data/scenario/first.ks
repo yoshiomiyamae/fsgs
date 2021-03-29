@@ -73,9 +73,6 @@
 [link target="*about_fag_9"]プラグインテスト[endlink][r]
 [link target="*about_fag5"]立ち絵テスト[endlink][r]
 [r]
-[r]
-[r]
-[r]
 [link exp="fag.shutdown()" color=0xff0000 hint="FSGS/FAGの紹介を終了します"]終了[endlink]
 @endnowait
 @history output=true

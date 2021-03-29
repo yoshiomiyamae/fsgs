@@ -101,7 +101,7 @@ export class MessageLayer extends React.Component<
     this.config = props.config;
     this.defaultFont = { ...this.config.defaultFont };
     this.font = { ...this.config.defaultFont };
-    this.lineHeight = this.getFontSize();
+    this.lineHeight = this.getFontSize() + this.getRubySize() + this.getRubyOffset();
     this.lineWidths = [];
     this.currentLine = 0;
     this.textAlignment = Alignment.Default;
@@ -164,6 +164,7 @@ export class MessageLayer extends React.Component<
 
   setRuby = (text: string) => {
     this.ruby = text;
+    this.lineHeight = this.getFontSize() + this.getRubySize() + this.getRubyOffset();
   };
 
   setLink = async (params: ParameterCollection) => {
@@ -264,7 +265,7 @@ export class MessageLayer extends React.Component<
       ...this.font,
       size: +size,
     };
-    this.lineHeight = +size;
+    this.lineHeight = +size + this.getRubySize() + this.getRubyOffset();
   };
 
   setFontEdge = (edge: string | boolean) => {
@@ -440,6 +441,8 @@ export class MessageLayer extends React.Component<
     `${this.getFontItalic() ? "italic" : ""} ${
       this.getFontBold() ? "bold" : ""
     } ${this.font.size}px '${this.font.face}'`;
+  private getRubySize = () => nullFallback(this.font.rubySize, nullFallback(this.defaultFont.rubyOffset, 0));
+  private getRubyOffset = () => nullFallback(this.font.rubyOffset, nullFallback(this.defaultFont.rubyOffset, 0));
   private getFrameColor = () => nullFallback(this.config.frameColor, 0x000000);
   private getFrameOpacity = () => nullFallback(this.config.frameOpacity, 0x80);
   private getLinkColor = (linkColor?: number | null) =>
@@ -635,7 +638,7 @@ export class MessageLayer extends React.Component<
     context.textBaseline = textBaseline;
     context.font = `${this.font.rubySize}px ${this.font.face}`;
     context.fillText(this.ruby, x, y);
-    this.ruby = "";
+    this.setRuby("");
     context.textAlign = currentTextAlign;
     context.textBaseline = currentBaseline;
     context.font = currentFont;
@@ -808,7 +811,7 @@ export class MessageLayer extends React.Component<
     if (!this.fore.base) {
       return margin;
     }
-    const lineHeight = this.getMH() - margin - this.getMarginB();
+    const lineHeight = this.getMH() - margin - this.getMarginB() + this.getRubySize() + this.getRubyOffset();
     const context = this.fore.base.getContext("2d");
     if (!context) {
       return margin;
@@ -850,12 +853,12 @@ export class MessageLayer extends React.Component<
       this.currentLine++;
       this.currentCaretPosition.x -= this.lineHeight + this.getLineSpacing();
       this.currentCaretPosition.y = this.calculateTopMargin();
-      this.lineHeight = this.getFontSize();
+      this.lineHeight = this.getFontSize() + this.getRubySize() + this.getRubyOffset();
     } else {
       this.currentLine++;
       this.currentCaretPosition.x = this.calculateLeftMargin();
       this.currentCaretPosition.y += this.lineHeight + this.getLineSpacing();
-      this.lineHeight = this.getFontSize();
+      this.lineHeight = this.getFontSize() + this.getRubySize() + this.getRubyOffset();
     }
     this.afterSetAlignment = true;
   };
