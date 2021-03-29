@@ -914,18 +914,14 @@ export class MessageLayer extends React.Component<
   };
 
   setCursorPosition = (position: Position) => {
-    this.cursorPosition = {
-      x: position.x,
-      y: position.y,
-    };
+    this.cursorPosition = position;
     const mouseInClickableAreas = this.mouseInClickableArea();
+    this.clearHighlight(this.back);
+    this.clearHighlight(this.fore);
     if (mouseInClickableAreas) {
       for (const clickableArea of mouseInClickableAreas) {
         this.highlightArea(clickableArea);
       }
-    } else {
-      this.clearHighlight(this.back);
-      this.clearHighlight(this.fore);
     }
   };
 
@@ -1027,15 +1023,16 @@ export class MessageLayer extends React.Component<
       }).area;
     }
     return {
-      x: nextArea.position.x,
-      y: nextArea.position.y,
+      x: nextArea.position.x + nextArea.size.width / 2,
+      y: nextArea.position.y + nextArea.size.height / 2,
     } as Position;
   };
 
   getPreviousChoicePosition = (currentPosition: Position) => {
     const nextCandidates = this.clickableAreas.filter(
-      (clickableArea) => currentPosition.y > clickableArea.area.position.y
+      (clickableArea) => currentPosition.y >= clickableArea.area.position.y
     );
+    nextCandidates.pop();
     let nextArea: Rectangle;
     if (nextCandidates.length > 0) {
       nextArea = nextCandidates.reduce((previousValue, currentValue) => {
@@ -1063,8 +1060,8 @@ export class MessageLayer extends React.Component<
       }).area;
     }
     return {
-      x: nextArea.position.x,
-      y: nextArea.position.y,
+      x: nextArea.position.x + nextArea.size.width / 2,
+      y: nextArea.position.y + nextArea.size.height / 2,
     } as Position;
   };
 

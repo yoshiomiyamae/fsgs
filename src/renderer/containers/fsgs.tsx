@@ -776,6 +776,7 @@ export class Fsgs extends React.Component<FsgsProps> {
           this.currentMousePosition
         );
         messageLayer.setCursorPosition(this.currentMousePosition);
+        return;
       }
       case "ArrowDown": {
         const messageLayer = this.messageLayers[this.currentMessageLayer];
