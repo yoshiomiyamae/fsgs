@@ -77,6 +77,8 @@ export class MessageLayer extends React.Component<
   private shadowColor: number | null;
   private currentPage: LayerPages;
   private transitionWorking: boolean;
+  private isCharacterRotated: boolean;
+  private rotationAnchor: Position | undefined;
 
   constructor(props: MessageLayerProps) {
     super(props);
@@ -128,6 +130,11 @@ export class MessageLayer extends React.Component<
     this.shadowColor = this.getShadowColor();
     this.currentPage = LayerPages.Fore;
     this.transitionWorking = false;
+    this.isCharacterRotated = false;
+    this.rotationAnchor = {
+      x: 0,
+      y: 0,
+    }
   }
 
   changeFont = (font: Font) => {
@@ -218,9 +225,8 @@ export class MessageLayer extends React.Component<
           b: 0xff,
         };
       }
-      input.style.background = `rgba(${backgroundColor.r},${
-        backgroundColor.g
-      },${backgroundColor.b},${+params.opacity / 100})`;
+      input.style.background = `rgba(${backgroundColor.r},${backgroundColor.g
+        },${backgroundColor.b},${+params.opacity / 100})`;
     }
     if (params.color) {
       input.style.color = integerToColorString(
@@ -438,8 +444,7 @@ export class MessageLayer extends React.Component<
   private getFontBold = () =>
     nullFallback(this.font.bold, nullFallback(this.defaultFont.bold, true));
   private getFont = () =>
-    `${this.getFontItalic() ? "italic" : ""} ${
-      this.getFontBold() ? "bold" : ""
+    `${this.getFontItalic() ? "italic" : ""} ${this.getFontBold() ? "bold" : ""
     } ${this.font.size}px '${this.font.face}'`;
   private getRubySize = () => nullFallback(this.font.rubySize, nullFallback(this.defaultFont.rubyOffset, 0));
   private getRubyOffset = () => nullFallback(this.font.rubyOffset, nullFallback(this.defaultFont.rubyOffset, 0));
@@ -510,12 +515,10 @@ export class MessageLayer extends React.Component<
     )) {
       const element2 = element as HTMLElement;
       element2.style.transform = `scale(${ratio})`;
-      element2.style.left = `${
-        +nullFallback(element2.dataset["x"], 0) * ratio
-      }px`;
-      element2.style.top = `${
-        +nullFallback(element2.dataset["y"], 0) * ratio
-      }px`;
+      element2.style.left = `${+nullFallback(element2.dataset["x"], 0) * ratio
+        }px`;
+      element2.style.top = `${+nullFallback(element2.dataset["y"], 0) * ratio
+        }px`;
     }
   };
 
@@ -559,7 +562,7 @@ export class MessageLayer extends React.Component<
     this.processing = false;
   };
 
-  writePosition = async (width: number, height: number) => {
+  writePosition = async (width: number, height: number, proceedPosition: boolean = true) => {
     if (this.vertical) {
       console.log("%cVertical mode is under development", "color: orange");
       if (
@@ -588,7 +591,9 @@ export class MessageLayer extends React.Component<
         },
       };
 
-      this.currentCaretPosition.y += height + this.getPitch();
+      if(proceedPosition) {
+        this.currentCaretPosition.y += height + this.getPitch();
+      }
 
       return characterRectangle;
     } else {
@@ -618,7 +623,9 @@ export class MessageLayer extends React.Component<
         },
       };
 
-      this.currentCaretPosition.x += width + this.getPitch();
+      if(proceedPosition) {
+        this.currentCaretPosition.x += width + this.getPitch();
+      }
 
       return characterRectangle;
     }
@@ -660,6 +667,43 @@ export class MessageLayer extends React.Component<
     const height = this.getFontSize();
 
     if (this.vertical) {
+      let xOffset = 0;
+      let yOffset = 0;
+      
+      if (this.isCharacterRotated) {
+        if(this.rotationAnchor) {
+          context.translate(this.rotationAnchor.x, this.rotationAnchor.y);
+          context.rotate(-Math.PI / 2);
+          context.translate(-this.rotationAnchor.x, -this.rotationAnchor.y);
+        }
+        this.isCharacterRotated = false;
+      }
+      
+      switch (true) {
+        case /[、。]/.test(character): {
+          xOffset = height * 0.7;
+          yOffset = -height * 0.5;
+          break;
+        }
+        case /[ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮヵヶ]/.test(character): {
+          xOffset = height * 0.1;
+          yOffset = -height * 0.1;
+          break;
+        }
+        case /[「『（【［〈《〔｛«‹〘〚｢{\[\(」』）】］〉》〕｝»›〙〛｣}\]\)]/.test(character): {
+          if (!this.isCharacterRotated) {
+            this.rotationAnchor = (await this.writePosition(width, height, false))?.position;
+            if (this.rotationAnchor) {
+              context.translate(this.rotationAnchor.x, this.rotationAnchor.y);
+              context.rotate(Math.PI / 2);
+              context.translate(-this.rotationAnchor.x, -this.rotationAnchor.y);
+            }
+          }
+          yOffset = -height;
+          this.isCharacterRotated = true;
+          break;
+        }
+      }
       const x =
         this.currentCaretPosition.x -
         this.lineHeight -
@@ -683,8 +727,8 @@ export class MessageLayer extends React.Component<
         context.fillStyle = integerToColorString(this.getShadowColor());
         context.fillText(
           character,
-          characterRectangle.position.x + 2,
-          characterRectangle.position.y + 2
+          characterRectangle.position.x + 2 + xOffset,
+          characterRectangle.position.y + 2 + yOffset
         );
       }
       if (this.font.edge) {
@@ -692,15 +736,15 @@ export class MessageLayer extends React.Component<
         context.lineWidth = 2;
         context.strokeText(
           character,
-          characterRectangle.position.x,
-          characterRectangle.position.y
+          characterRectangle.position.x + xOffset,
+          characterRectangle.position.y + yOffset
         );
       }
       context.fillStyle = integerToColorString(this.getFontColor());
       context.fillText(
         character,
-        characterRectangle.position.x,
-        characterRectangle.position.y
+        characterRectangle.position.x + xOffset,
+        characterRectangle.position.y + yOffset
       );
       return characterRectangle;
     } else {
@@ -1068,7 +1112,7 @@ export class MessageLayer extends React.Component<
     } as Position;
   };
 
-  copyForeToBack = () => {};
+  copyForeToBack = () => { };
 
   render() {
     return (
