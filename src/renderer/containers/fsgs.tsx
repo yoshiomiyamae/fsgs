@@ -19,7 +19,7 @@ import { ImageLayer, ImageLayerCollection } from "../components/image-layer";
 import { sleep, nullFallback } from "../common";
 import { messageLayerConfigDefault } from "../configs/config";
 import ts from "typescript";
-import "../style.scss";
+import "../style.css";
 
 let kag: Fsgs;
 let fsgs: Fsgs;

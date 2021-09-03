@@ -38,6 +38,12 @@ interface MessageLayerElementSet {
   form: HTMLDivElement | null;
 }
 
+const CHARACTER_SET_1 = /[、。，､,.｡]/;
+const CHARACTER_SET_2 = /[ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮヵヶ]/;
+const CHARACTER_SET_3 = /[「『（【［〈《〔｛〘〚＜」』）】］〉》〕｝〙〛＞；：]/;
+const CHARACTER_SET_4 = /[«｢{\[\(<»｣}\]\)>]/;
+const CHARACTER_SET_5 = /[‹›;:]/;
+
 export class MessageLayer extends React.Component<
   MessageLayerProps,
   MessageLayerProps
@@ -591,7 +597,7 @@ export class MessageLayer extends React.Component<
         },
       };
 
-      if(proceedPosition) {
+      if (proceedPosition) {
         this.currentCaretPosition.y += height + this.getPitch();
       }
 
@@ -623,7 +629,7 @@ export class MessageLayer extends React.Component<
         },
       };
 
-      if(proceedPosition) {
+      if (proceedPosition) {
         this.currentCaretPosition.x += width + this.getPitch();
       }
 
@@ -651,6 +657,14 @@ export class MessageLayer extends React.Component<
     context.font = currentFont;
   };
 
+  characterRotation = (context: CanvasRenderingContext2D, back: boolean = false) => {
+    if (this.rotationAnchor) {
+      context.translate(this.rotationAnchor.x, this.rotationAnchor.y);
+      context.rotate(Math.PI / 2 * (back ? -1 : 1));
+      context.translate(-this.rotationAnchor.x, -this.rotationAnchor.y);
+    }
+  }
+
   writeCharacter = async (character: string) => {
     if (!character) {
       return null;
@@ -669,41 +683,42 @@ export class MessageLayer extends React.Component<
     if (this.vertical) {
       let xOffset = 0;
       let yOffset = 0;
-      
-      if (this.isCharacterRotated) {
-        if(this.rotationAnchor) {
-          context.translate(this.rotationAnchor.x, this.rotationAnchor.y);
-          context.rotate(-Math.PI / 2);
-          context.translate(-this.rotationAnchor.x, -this.rotationAnchor.y);
-        }
-        this.isCharacterRotated = false;
-      }
-      
+
       switch (true) {
-        case /[、。]/.test(character): {
+        case CHARACTER_SET_1.test(character): {
           xOffset = height * 0.7;
           yOffset = -height * 0.5;
           break;
         }
-        case /[ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮヵヶ]/.test(character): {
+        case CHARACTER_SET_2.test(character): {
           xOffset = height * 0.1;
           yOffset = -height * 0.1;
           break;
         }
-        case /[「『（【［〈《〔｛«‹〘〚｢{\[\(」』）】］〉》〕｝»›〙〛｣}\]\)]/.test(character): {
-          if (!this.isCharacterRotated) {
-            this.rotationAnchor = (await this.writePosition(width, height, false))?.position;
-            if (this.rotationAnchor) {
-              context.translate(this.rotationAnchor.x, this.rotationAnchor.y);
-              context.rotate(Math.PI / 2);
-              context.translate(-this.rotationAnchor.x, -this.rotationAnchor.y);
-            }
-          }
+        case CHARACTER_SET_3.test(character): {
           yOffset = -height;
-          this.isCharacterRotated = true;
+          break;
+        }
+        case CHARACTER_SET_4.test(character): {
+          xOffset = height * 0.5;
+          yOffset = -height * 1.5;
+          break;
+        }
+        case CHARACTER_SET_5.test(character): {
+          xOffset = height * 0.5;
+          yOffset = -height * 1.7;
           break;
         }
       }
+
+      if ((new RegExp(CHARACTER_SET_3.source + '|' + CHARACTER_SET_4.source + '|' + CHARACTER_SET_5.source)).test(character)) {
+        if (!this.isCharacterRotated) {
+          this.rotationAnchor = (await this.writePosition(width, height, false))?.position;
+          this.characterRotation(context);
+        }
+        this.isCharacterRotated = true;
+      }
+
       const x =
         this.currentCaretPosition.x -
         this.lineHeight -
@@ -746,6 +761,12 @@ export class MessageLayer extends React.Component<
         characterRectangle.position.x + xOffset,
         characterRectangle.position.y + yOffset
       );
+
+      if (this.isCharacterRotated) {
+        this.characterRotation(context, true);
+        this.isCharacterRotated = false;
+      }
+
       return characterRectangle;
     } else {
       const y =

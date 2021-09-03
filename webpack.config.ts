@@ -1,6 +1,4 @@
 import path from "path";
-import sass from "sass";
-import fibers from "fibers";
 
 import { Configuration } from "webpack";
 
@@ -28,20 +26,12 @@ const base: Configuration = {
         use: "ts-loader",
       },
       {
-        test: /\.scss$/,
+        test: /\.css$/,
         use: [
           MiniCssExtractPlugin.loader,
           {
             loader: "css-loader",
             options: { sourceMap: isDev },
-          },
-          {
-            loader: "sass-loader",
-            options: {
-              sourceMap: isDev,
-              implementation: sass,
-              sassOptions: { fiber: fibers },
-            },
           },
         ],
       },

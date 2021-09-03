@@ -145,7 +145,7 @@
 @position vertical=true
 　また、縦書き表示をすることもできます。[l][r]
 　縦書きでも横書きと全く同じ機能を使用することができます。[l][r]
-　「『（【［〈《〔｛«‹〘〚｢{(」』）】］〉》〕｝»›〙〛｣})[p]
+　「『（【［〈《〔｛«‹〘〚｢{[[(<＜」』）】］〉》〕｝»›〙〛｣}]])>＞;:；：[p]
 @layopt layer=message0 visible=false
 @layopt layer=message1 visible=true
 @current layer=message1
