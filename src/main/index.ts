@@ -24,8 +24,8 @@ let mainWindow: BrowserWindow | null;
 
 const getResourceDirectory = () => {
   return process.env.NODE_ENV === "development"
-    ? path.join(process.cwd(), "dist")
-    : path.join(process.resourcesPath, "app.asar.unpacked", "dist");
+    ? path.join(process.cwd(), "build")
+    : path.join(process.resourcesPath, "app.asar", "build");
 };
 
 const createWindow = () => {
@@ -38,7 +38,7 @@ const createWindow = () => {
       preload: path.resolve(getResourceDirectory(), "preload.js"),
     },
   });
-  mainWindow.loadFile("dist/index.html");
+  mainWindow.loadFile(path.join(getResourceDirectory(), "index.html"));
 
   const menuTemplate = createMenuTemplate(mainWindow);
 
@@ -97,7 +97,7 @@ const createMenuTemplate = (
       },
     ],
   },
-  {
+  ...process.env.NODE_ENV === "development" ? [{
     label: "デバッグ(&D)",
     submenu: [
       {
@@ -109,7 +109,7 @@ const createMenuTemplate = (
         click: () => window.reload(),
       },
     ],
-  },
+  }] : [],
 ];
 
 app.once("ready", createWindow);
@@ -128,7 +128,7 @@ ipcMain.handle(
   async (event: IpcMainInvokeEvent, args: GetScriptArgs) => {
     console.log(`get-script(${args.scriptName}) called.`);
     const data = await promises.readFile(
-      path.join(__dirname, "data", "scenario", args.scriptName),
+      path.join(getResourceDirectory(), "data", "scenario", args.scriptName),
       "utf8"
     );
     return {
@@ -145,7 +145,7 @@ ipcMain.handle(
   async (event: IpcMainInvokeEvent, filePath: string) => {
     console.log(`get-image(${filePath}) called.`);
     const data = await promises.readFile(
-      path.join(__dirname, "data", filePath)
+      path.join(getResourceDirectory(), "data", filePath)
     );
     const ft = await fileType.fromBuffer(data);
     if (!ft) {
@@ -160,7 +160,7 @@ ipcMain.handle(
   async (event: IpcMainInvokeEvent, fileName: string) => {
     console.log(`do-rule-transition(${fileName}) called.`);
     const data = await promises.readFile(
-      path.join(__dirname, "data", "rule", fileName)
+      path.join(getResourceDirectory(), "data", "rule", fileName)
     );
     const ft = await fileType.fromBuffer(data);
     if (!ft) {
@@ -175,7 +175,7 @@ ipcMain.handle(
   async (event: IpcMainInvokeEvent, filePath: string) => {
     console.log(`get-audio(${filePath}) called.`);
     const data = await promises.readFile(
-      path.join(__dirname, "data", filePath)
+      path.join(getResourceDirectory(), "data", filePath)
     );
     const ft = await fileType.fromBuffer(data);
     if (!ft) {

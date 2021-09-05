@@ -352,7 +352,7 @@ export class ImageLayer extends React.Component<ImageLayerProps> {
         this.dom.style.width = "";
         this.dom.style.height = `${clientHeight}px`;
       }
-      this.showFps();
+      process.env.NODE_ENV === 'development' && this.showFps();
     }
   };
 

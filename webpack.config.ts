@@ -13,7 +13,7 @@ const base: Configuration = {
     extensions: [".js", ".ts", ".jsx", ".tsx", ".json"],
   },
   output: {
-    path: path.resolve(__dirname, "dist"),
+    path: path.resolve(__dirname, "build"),
     publicPath: "./",
     filename: "[name].js",
     assetModuleFilename: "images/[name][ext]",

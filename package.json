@@ -1,12 +1,22 @@
 {
   "name": "fsgs",
   "version": "1.0.0",
-  "main": "dist/main.js",
+  "main": "build/main.js",
+  "build": {
+    "files": [
+      "./build/**/*"
+    ]
+  },
   "scripts": {
     "start": "run-s clean build data serve",
-    "clean": "rimraf dist",
+    "clean": "rimraf build",
     "build": "cross-env NODE_ENV=\"development\" webpack --progress",
-    "data": "cpx \"data/**/*.*\" dist/data/",
+    "build-prod": "cross-env NODE_ENV=\"production\" webpack --progress",
+    "build:win": "run-s build-prod data _build:win",
+    "build:linux": "run-s build-prod data _build:linux",
+    "_build:win": "electron-builder --win --x64",
+    "_build:linux": "cross-env NODE_ENV=\"production\" run-s build data electron-builder --linux --x64",
+    "data": "cpx \"data/**/*.*\" build/data/",
     "startwobuild": "run-s data serve",
     "serve": "electron ."
   },
