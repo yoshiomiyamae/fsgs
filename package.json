@@ -15,7 +15,7 @@
     "build:win": "run-s build-prod data _build:win",
     "build:linux": "run-s build-prod data _build:linux",
     "_build:win": "electron-builder --win --x64",
-    "_build:linux": "cross-env NODE_ENV=\"production\" run-s build data electron-builder --linux --x64",
+    "_build:linux": "electron-builder --linux --x64",
     "data": "cpx \"data/**/*.*\" build/data/",
     "startwobuild": "run-s data serve",
     "serve": "electron ."
@@ -32,6 +32,7 @@
     "cross-env": "^7.0.3",
     "css-loader": "^6.2.0",
     "electron": "^14.0.0",
+    "electron-builder": "^22.11.7",
     "html-webpack-plugin": "^5.3.2",
     "mini-css-extract-plugin": "^2.2.2",
     "rimraf": "^3.0.2",
