@@ -28,6 +28,7 @@ declare global {
             options: MessageBoxOptions
           ) => Promise<MessageBoxReturnValue>;
         };
+        setTitle: (title: string) => Promise<any>;
       };
       shell: Electron.Shell;
     };

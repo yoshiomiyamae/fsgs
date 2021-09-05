@@ -10,7 +10,6 @@ render(
     config={{
       ...defaultConfig,
       configVersion: "3.5",
-      title: "FSGS",
     }}
   />,
   document.getElementById("root")

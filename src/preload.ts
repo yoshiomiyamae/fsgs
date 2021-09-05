@@ -39,6 +39,8 @@ contextBridge.exposeInMainWorld("api", {
       ): Promise<MessageBoxReturnValue> =>
         ipcRenderer.invoke("window-dialog-show-message-box", options),
     },
+    setTitle: (title: string): Promise<any> => 
+      ipcRenderer.invoke("window-set-title", title),
   },
   shell,
 });

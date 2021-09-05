@@ -18,26 +18,22 @@ import {
 import { ImageLayer, ImageLayerCollection } from "../components/image-layer";
 import { sleep, nullFallback } from "../common";
 import { messageLayerConfigDefault } from "../configs/config";
-import ts from "typescript";
+import ts, { ScriptTarget } from "typescript";
 import "../style.css";
 
-let fag: Fsgs;
+export let fag: Fsgs;
 let fsgs: Fsgs;
 let mp: {};
 
-let f: {};
-let sf: {};
-let tf: {};
+const f = {};
+const sf = {};
+const tf = {};
+export const g = {};
+export const c = {};
 
-const str2num = (value: string) => {
-  return +value;
-};
-
-const random = Math.random;
-
-const intrandom = (min: number, max: number) => {
-  return Math.floor(Math.random() * (max - min + 1) + min);
-};
+export const str2num = common.str2Num;
+export const random = common.random;
+export const intrandom = common.intRandom;
 
 const styles = {
   mainWindow: {
@@ -142,13 +138,11 @@ export class Fsgs extends React.Component<FsgsProps> {
   }
 
   initialize = async () => {
-    f = {};
-    sf = {};
-    tf = {};
-
     fag = fsgs = this;
 
     document.onkeydown = this.onKeydown;
+
+    await window.api.window.setTitle(this.props.config?.title || 'FSGS');
 
     await window.api.onMenuClicked(async (action: string) => {
       switch (action) {
@@ -653,6 +647,13 @@ export class Fsgs extends React.Component<FsgsProps> {
         this.eval(operation.params.script);
         break;
       }
+      case "title": {
+        window.api.window.setTitle(operation.params.name);
+        break;
+      }
+      case "commit": {
+        break;
+      }
       default: {
         this.default(operation);
         break;
@@ -718,7 +719,7 @@ export class Fsgs extends React.Component<FsgsProps> {
       `storage: ${storage}, target: ${target}, condition: ${condition}, currentScript: ${this.currentScriptName}, offset: ${offset}`
     );
     if (condition && !eval(condition)) {
-      this.return;
+      return;
     }
     if (storage && !target) {
       if (storage !== this.currentScriptName) {
@@ -748,7 +749,7 @@ export class Fsgs extends React.Component<FsgsProps> {
       return null;
     }
     try {
-      const transpiledScript = ts.transpile(script);
+      const transpiledScript = ts.transpile(script, {target: ScriptTarget.ES2020});
       console.log(`eval(${transpiledScript})`);
       const result = eval(transpiledScript);
       console.log("result", result);
@@ -1199,6 +1200,11 @@ export class Fsgs extends React.Component<FsgsProps> {
     }
   };
 
+  addPlugin = (plugin: {}) => {
+    console.log("Add plugin");
+    console.log(plugin);
+  }
+
   onClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     if(this.isPausing){
       return;
@@ -1253,6 +1259,10 @@ export class Fsgs extends React.Component<FsgsProps> {
       </div>
     );
   }
+}
+
+export class FagPlugin {
+
 }
 
 export default Fsgs;

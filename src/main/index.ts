@@ -36,7 +36,6 @@ const createWindow = () => {
       nodeIntegration: false,
       contextIsolation: true,
       preload: path.resolve(getResourceDirectory(), "preload.js"),
-      enableRemoteModule: true,
     },
   });
   mainWindow.loadFile("dist/index.html");
@@ -226,3 +225,9 @@ ipcMain.handle("window-get-menu-bar-visibility", async (event: IpcMainInvokeEven
 ipcMain.handle("window-dialog-show-message-box", async (event: IpcMainInvokeEvent, options: MessageBoxOptions) => {
   return dialog.showMessageBox(options);
 });
+ipcMain.handle("window-set-title", (event: IpcMainInvokeEvent, title: string) => {
+  if (!mainWindow) {
+    return;
+  }
+  mainWindow.setTitle(title);
+})

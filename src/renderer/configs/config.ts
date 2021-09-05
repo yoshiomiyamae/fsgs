@@ -42,7 +42,7 @@ export const messageLayerConfigDefault: MessageLayerConfig = {
 };
 export const config: Config = {
   configVersion: "3.32 stable",
-  title: "吉里吉里",
+  title: "FSGS",
   ignoreCR: true,
   graphicCacheLimit: 0,
   windowConfig: {
