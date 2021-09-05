@@ -1,281 +1,253 @@
-@if exp="typeof(global.snow_object) == 'undefined'"
+@if exp="typeof(g.snow_object) == 'undefined'"
 @iscript
-/*
-	雪をふらせるプラグイン
-*/
+declare const intrandom;
+declare let fag;
+declare class FagPlugin {}
+declare const g: {};
+declare const c: {};
 
-class SnowGrain
+c['SnowGrain'] = (class SnowGrain
 {
-	// 雪粒のクラス
+  // 雪粒のクラス
 
-	var fore; // 表画面の雪粒オブジェクト
-	var back; // 裏画面の雪粒オブジェクト
-	var xvelo; // 横速度
-	var yvelo; // 縦速度
-	var xaccel; // 横加速
-	var l, t; // 横位置と縦位置
-	var ownwer; // このオブジェクトを所有する SnowPlugin オブジェクト
-	var spawned = false; // 雪粒が出現しているか
-	var window; // ウィンドウオブジェクトへの参照
+  private fore; // 表画面の雪粒オブジェクト
+  private back; // 裏画面の雪粒オブジェクト
+  private xvelo; // 横速度
+  private yvelo; // 縦速度
+  private xaccel; // 横加速
+  private l;
+  private t; // 横位置と縦位置
+  private owner; // このオブジェクトを所有する SnowPlugin オブジェクト
+  private spawned = false; // 雪粒が出現しているか
+  private window; // ウィンドウオブジェクトへの参照
 
-	function SnowGrain(window, n, owner)
-	{
-		// SnowGrain コンストラクタ
-		this.owner = owner;
-		this.window = window;
+  constructor(window, n, owner)
+  {
+    // SnowGrain コンストラクタ
+    this.owner = owner;
+    this.window = window;
 
-		fore = new Layer(window, window.fore.base);
-		back = new Layer(window, window.back.base);
+    this.fore = new Layer(window, window.fore.base);
+    this.back = new Layer(window, window.back.base);
 
-		fore.absolute = 2000000-1; // 重ね合わせ順序はメッセージ履歴よりも奥
-		back.absolute = fore.absolute;
+    this.fore.absolute = 2000000-1; // 重ね合わせ順序はメッセージ履歴よりも奥
+    this.back.absolute = this.fore.absolute;
 
-		fore.hitType = htMask;
-		fore.hitThreshold = 256; // マウスメッセージは全域透過
-		back.hitType = htMask;
-		back.hitThreshold = 256;
+    this.fore.hitType = htMask;
+    this.fore.hitThreshold = 256; // マウスメッセージは全域透過
+    this.back.hitType = htMask;
+    this.back.hitThreshold = 256;
 
-		fore.loadImages("snow_" + n); // 画像を読み込む
-		back.assignImages(fore);
-		fore.setSizeToImageSize(); // レイヤのサイズを画像のサイズと同じに
-		back.setSizeToImageSize();
-		xvelo = 0; // 横方向速度
-		yvelo = n*0.6 + 1.9 + Math.random() * 0.2; // 縦方向速度
-		xaccel = Math.random(); // 初期加速度
-	}
+    this.fore.loadImages("snow_" + n); // 画像を読み込む
+    this.back.assignImages(this.fore);
+    this.fore.setSizeToImageSize(); // レイヤのサイズを画像のサイズと同じに
+    this.back.setSizeToImageSize();
+    this.xvelo = 0; // 横方向速度
+    this.yvelo = n*0.6 + 1.9 + Math.random() * 0.2; // 縦方向速度
+    this.xaccel = Math.random(); // 初期加速度
+  }
+  
+  spawn()
+  {
+    // 出現
+    this.l = Math.random() * window.primaryLayer.width; // 横初期位置
+    this.t = -this.fore.height; // 縦初期位置
+    this.spawned = true;
+    this.fore.setPos(this.l, this.t);
+    this.back.setPos(this.l, this.t); // 裏画面の位置も同じに
+    this.fore.visible = this.owner.foreVisible;
+    this.back.visible = this.owner.backVisible;
+  }
 
-	function finalize()
-	{
-		invalidate fore;
-		invalidate back;
-	}
+  resetVisibleState()
+  {
+    // 表示・非表示の状態を再設定する
+    if(this.spawned)
+    {
+      this.fore.visible = this.owner.foreVisible;
+      this.back.visible = this.owner.backVisible;
+    }
+    else
+    {
+      this.fore.visible = false;
+      this.back.visible = false;
+    }
+  }
 
-	function spawn()
-	{
-		// 出現
-		l = Math.random() * window.primaryLayer.width; // 横初期位置
-		t = -fore.height; // 縦初期位置
-		spawned = true;
-		fore.setPos(l, t);
-		back.setPos(l, t); // 裏画面の位置も同じに
-		fore.visible = owner.foreVisible;
-		back.visible = owner.backVisible;
-	}
+  move()
+  {
+    // 雪粒を動かす
+    if(!this.spawned)
+    {
+      // 出現していないので出現する機会をうかがう
+      if(Math.random() < 0.002) this.spawn();
+    }
+    else
+    {
+      this.l += this.xvelo;
+      this.t += this.yvelo;
+      this.xvelo += this.xaccel;
+      this.xaccel += (Math.random() - 0.5) * 0.3;
+      if(this.xvelo>=1.5) this.xvelo=1.5;
+      if(this.xvelo<=-1.5) this.xvelo=-1.5;
+      if(this.xaccel>=0.2) this.xaccel=0.2;
+      if(this.xaccel<=-0.2) this.xaccel=-0.2;
+      if(this.t >= window.primaryLayer.height)
+      {
+        this.t = -this.fore.height;
+        this.l = Math.random() * window.primaryLayer.width;
+      }
+      this.fore.setPos(this.l, this.t);
+      this.back.setPos(this.l, this.t); // 裏画面の位置も同じに
+    }
+  }
 
-	function resetVisibleState()
-	{
-		// 表示・非表示の状態を再設定する
-		if(spawned)
-		{
-			fore.visible = owner.foreVisible;
-			back.visible = owner.backVisible;
-		}
-		else
-		{
-			fore.visible = false;
-			back.visible = false;
-		}
-	}
+  exchangeForeBack()
+  {
+    // 表と裏の管理情報を交換する
+    const tmp = this.fore;
+    this.fore = this.back;
+    this.back = tmp;
+  }
+});
 
-	function move()
-	{
-		// 雪粒を動かす
-		if(!spawned)
-		{
-			// 出現していないので出現する機会をうかがう
-			if(Math.random() < 0.002) spawn();
-		}
-		else
-		{
-			l += xvelo;
-			t += yvelo;
-			xvelo += xaccel;
-			xaccel += (Math.random() - 0.5) * 0.3;
-			if(xvelo>=1.5) xvelo=1.5;
-			if(xvelo<=-1.5) xvelo=-1.5;
-			if(xaccel>=0.2) xaccel=0.2;
-			if(xaccel<=-0.2) xaccel=-0.2;
-			if(t >= window.primaryLayer.height)
-			{
-				t = -fore.height;
-				l = Math.random() * window.primaryLayer.width;
-			}
-			fore.setPos(l, t);
-			back.setPos(l, t); // 裏画面の位置も同じに
-		}
-	}
-
-	function exchangeForeBack()
-	{
-		// 表と裏の管理情報を交換する
-		var tmp = fore;
-		fore = back;
-		back = tmp;
-	}
-}
-
-class SnowPlugin extends KAGPlugin
+c['SnowPlugin'] = (class SnowPlugin extends FagPlugin
 {
-	// 雪を振らすプラグインクラス
+  // 雪を振らすプラグインクラス
 
-	var snows = []; // 雪粒
-	var timer; // タイマ
-	var window; // ウィンドウへの参照
-	var foreVisible = true; // 表画面が表示状態かどうか
-	var backVisible = true; // 裏画面が表示状態かどうか
+  private snows = []; // 雪粒
+  private timer; // タイマ
+  private window; // ウィンドウへの参照
+  private foreVisible = true; // 表画面が表示状態かどうか
+  private backVisible = true; // 裏画面が表示状態かどうか
 
-	function SnowPlugin(window)
-	{
-		super.KAGPlugin();
-		this.window = window;
-	}
+  constructor(window)
+  {
+    super();
+    this.window = window;
+  }
 
-	function finalize()
-	{
-		// finalize メソッド
-		// このクラスの管理するすべてのオブジェクトを明示的に破棄
-		for(var i = 0; i < snows.count; i++)
-			invalidate snows[i];
-		invalidate snows;
+  init(num, options)
+  {
+    // num 個の雪粒を出現させる
+    if(this.timer !== null) return; // すでに雪粒はでている
 
-		invalidate timer if timer !== void;
+    // 雪粒を作成
+    for(let i = 0; i < num; i++)
+    {
+      const n = intrandom(0, 4); // 雪粒の大きさ ( ランダム )
+      this.snows[i] = new SnowGrain(window, n, this);
+    }
+    this.snows[0].spawn(); // 最初の雪粒だけは最初から表示
 
-		super.finalize(...);
-	}
+    // タイマーを作成
+    this.timer = new Timer(this.onTimer, '');
+    this.timer.interval = 80;
+    this.timer.enabled = true;
 
-	function init(num, options)
-	{
-		// num 個の雪粒を出現させる
-		if(timer !== void) return; // すでに雪粒はでている
+    this.foreVisible = true;
+    this.backVisible = true;
+    this.setOptions(options); // オプションを設定
+  }
 
-		// 雪粒を作成
-		for(var i = 0; i < num; i++)
-		{
-			var n = intrandom(0, 4); // 雪粒の大きさ ( ランダム )
-			snows[i] = new SnowGrain(window, n, this);
-		}
-		snows[0].spawn(); // 最初の雪粒だけは最初から表示
+  setOptions(elm)
+  {
+    // オプションを設定する
+    if (elm.forevisible !== null) {
+      this.foreVisible = elm.forevisible;
+    }
+    if (elm.backvisible !== null) {
+      this.backVisible = elm.backvisible;
+    }
+    this.resetVisibleState();
+  }
 
-		// タイマーを作成
-		timer = new Timer(onTimer, '');
-		timer.interval = 80;
-		timer.enabled = true;
+  onTimer()
+  {
+    // タイマーの周期ごとに呼ばれる
+    const snowcount = this.snows.length;
+    for(let i = 0; i < snowcount; i++)
+    this.snows[i].move(); // move メソッドを呼び出す
+  }
 
-		foreVisible = true;
-		backVisible = true;
-		setOptions(options); // オプションを設定
-	}
+  resetVisibleState()
+  {
+    // すべての雪粒の 表示・非表示の状態を再設定する
+    const snowcount = this.snows.length;
+    for(let i = 0; i < snowcount; i++)
+    this.snows[i].resetVisibleState(); // resetVisibleState メソッドを呼び出す
+  }
 
-	function uninit()
-	{
-		// 雪粒を消す
-		if(timer === void) return; // 雪粒はでていない
+  onStore(f, elm)
+  {
+    // 栞を保存するとき
+    const dic = f.snows;
+    dic.init = this.timer !== null;
+    dic.foreVisible = this.foreVisible;
+    dic.backVisible = this.backVisible;
+    dic.snowCount = this.snows.length;
+  }
 
-		for(var i = 0; i < snows.count; i++)
-			invalidate snows[i];
-		snows.count = 0;
+  onRestore(f, clear, elm)
+  {
+    // 栞を読み出すとき
+    const dic = f.snows;
+    if(dic === null || !+dic.init)
+    {
+      // 雪はでていない
+    }
+    else if(dic !== null && +dic.init)
+    {
+      // 雪はでていた
+      this.init(dic.snowCount, {forevisible: dic.foreVisible, backvisible: dic.backVisible});
+    }
+  }
 
-		invalidate timer;
-		timer = void;
-	}
+  onStableStateChanged(stable)
+  {
+  }
 
-	function setOptions(elm)
-	{
-		// オプションを設定する
-		foreVisible = +elm.forevisible if elm.forevisible !== void;
-		backVisible = +elm.backvisible if elm.backvisible !== void;
-		resetVisibleState();
-	}
+  onMessageHiddenStateChanged(hidden)
+  {
+  }
 
-	function onTimer()
-	{
-		// タイマーの周期ごとに呼ばれる
-		var snowcount = snows.count;
-		for(var i = 0; i < snowcount; i++)
-			snows[i].move(); // move メソッドを呼び出す
-	}
+  onCopyLayer(toback)
+  {
+    // レイヤの表←→裏情報のコピー
+    // このプラグインではコピーすべき情報は表示・非表示の情報だけ
+    if(toback)
+    {
+      // 表→裏
+      this.backVisible = this.foreVisible;
+    }
+    else
+    {
+      // 裏→表
+      this.foreVisible = this.backVisible;
+    }
+    this.resetVisibleState();
+  }
 
-	function resetVisibleState()
-	{
-		// すべての雪粒の 表示・非表示の状態を再設定する
-		var snowcount = snows.count;
-		for(var i = 0; i < snowcount; i++)
-			snows[i].resetVisibleState(); // resetVisibleState メソッドを呼び出す
-	}
-
-	function onStore(f, elm)
-	{
-		// 栞を保存するとき
-		var dic = f.snows = %[];
-		dic.init = timer !== void;
-		dic.foreVisible = foreVisible;
-		dic.backVisible = backVisible;
-		dic.snowCount = snows.count;
-	}
-
-	function onRestore(f, clear, elm)
-	{
-		// 栞を読み出すとき
-		var dic = f.snows;
-		if(dic === void || !+dic.init)
-		{
-			// 雪はでていない
-			uninit();
-		}
-		else if(dic !== void && +dic.init)
-		{
-			// 雪はでていた
-			init(dic.snowCount, %[ forevisible : dic.foreVisible, backvisible : dic.backVisible ] );
-		}
-	}
-
-	function onStableStateChanged(stable)
-	{
-	}
-
-	function onMessageHiddenStateChanged(hidden)
-	{
-	}
-
-	function onCopyLayer(toback)
-	{
-		// レイヤの表←→裏情報のコピー
-		// このプラグインではコピーすべき情報は表示・非表示の情報だけ
-		if(toback)
-		{
-			// 表→裏
-			backVisible = foreVisible;
-		}
-		else
-		{
-			// 裏→表
-			foreVisible = backVisible;
-		}
-		resetVisibleState();
-	}
-
-	function onExchangeForeBack()
-	{
-		// 裏と表の管理情報を交換
-		var snowcount = snows.count;
-		for(var i = 0; i < snowcount; i++)
-			snows[i].exchangeForeBack(); // exchangeForeBack メソッドを呼び出す
-	}
-}
-
-kag.addPlugin(global.snow_object = new SnowPlugin(kag));
-	// プラグインオブジェクトを作成し、登録する
-
+  onExchangeForeBack()
+  {
+    // 裏と表の管理情報を交換
+    const snowcount = this.snows.length;
+    for(let i = 0; i < snowcount; i++)
+    this.snows[i].exchangeForeBack(); // exchangeForeBack メソッドを呼び出す
+  }
+})
 @endscript
+@eval exp="g['snow_object'] = new c['SnowPlugin'](fag)"
+@eval exp="fag.addPlugin(g['snow_object']);"
 @endif
 ; マクロ登録
 @macro name="snowinit"
-@eval exp="snow_object.init(17, mp)"
+@eval exp="g.snow_object.init(17, mp)"
 @endmacro
 @macro name="snowuninit"
-@eval exp="snow_object.uninit()"
+@eval exp="g.snow_object.uninit()"
 @endmacro
 @macro name="snowopt"
-@eval exp="snow_object.setOptions(mp)"
+@eval exp="g.snow_object.setOptions(mp)"
 @endmacro
 @return

@@ -77,3 +77,20 @@ export const positionIsInRectangle = (
   position.x <= rectangle.position.x + rectangle.size.width &&
   position.y >= rectangle.position.y &&
   position.y <= rectangle.position.y + rectangle.size.height;
+
+
+export const str2Num = (value: string) => {
+  return +value;
+};
+
+export const random = Math.random;
+
+export const intRandom = (min: number, max: number) => {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+};
+
+export default {
+  str2Num,
+  random,
+  intRandom,
+}

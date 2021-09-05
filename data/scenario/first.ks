@@ -51,6 +51,7 @@
 @eval exp="System.touchImages(['_24_5', 'publicdomainq-0053614tgdvey.jpg', 'uni', '_24'], -2*1024*1024, 500)"
 
 *syokai_start|FSGSとFAGの紹介 - メニュー
+@title name="FSGSとFAGの紹介"
 @startanchor
 @playbgm storage="miyako-japan3.mp3" loop=true
 
@@ -97,7 +98,8 @@
 @jump target=*syokai_start
 
 
-*about_fsgs|
+*about_fsgs|FSGSとは
+@title name="FSGSとは"
 @changebg_and_clear storage="publicdomainq-0053614tgdvey.jpg"
 　FSGSは、Typescriptを使って、さまざまなアプリケーションを作成することができるものです。[l][r]
 　比較的静的な表現を用いる2Dゲームに適しています。[l][r]
@@ -126,6 +128,7 @@
 [s]
 
 *about_fag|FAGとは
+@title name="FAGとは"
 @changebg_and_clear storage="publicdomainq-0053614tgdvey.jpg"
 　FAGは、KAG互換を目指して開発されており、サウンドノベルのようなノベル系ゲームや、選択肢を選んでストーリーが進むような文字ベースのアドベンチャーゲームを作成するためのキットです。[l][r]
 　FAGはFSGSをゲームエンジンとして動作させるためのスクリプトで、それ自体はTypescriptで書かれています。[l]FAG用のスクリプトは「シナリオ」と呼ばれ、Typescriptとはまた別のものです。[l]Typescriptはプログラミングの知識がかなり必要になりますが、シナリオはより簡単で記述しやすいものです。[l][r]
@@ -262,7 +265,7 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz[l][r]
 @wt
 [r]
 　という感じで、いろいろ作ることができます。[p]
-*about_fag7|FAGとは
+*about_fag7|
 @cm
 　BGMとしてはCD-DA、MIDI、PCMのいずれかを使用できます。[l]効果音にはPCMを使用できます。[l]いずれもフェードなどの音量制御ができます。[l][r]
 　PCMは標準で無圧縮の.WAVを再生できます。[l]また、プラグインで再生可能な形式を拡張でき、OggVorbisも再生できます。[l][r]
@@ -277,6 +280,7 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz[l][r]
 @eval exp="f.ans = f.v1 * f.v2"
 @eval exp="f.input = ''"
 *about_fag_var_0|計算問題
+@title name="計算問題"
 @cm
 　計算問題です。[emb exp="f.v1"] × [emb exp="f.v2"] は？[r]
 [font size=40](下の入力欄に入力したら、よこの「OK」をクリックしてください)[resetfont][r]
@@ -317,6 +321,7 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz[l][r]
 @wt
 @snowuninit
 *about_fag_fin|FAGの紹介おしまい
+@title name="FAGの紹介おしまい"
 @cm
 　FAGの紹介はこれでおしまいです。[l][r]
 　みなさんも是非FSGS/FAGを使ってすばらしいゲームを作ってください。[l][r]

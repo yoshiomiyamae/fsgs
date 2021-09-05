@@ -16,7 +16,7 @@ import {
   MessageLayerCollection,
 } from "../components/message-layer";
 import { ImageLayer, ImageLayerCollection } from "../components/image-layer";
-import { sleep, nullFallback } from "../common";
+import common, { sleep, nullFallback } from "../common";
 import { messageLayerConfigDefault } from "../configs/config";
 import ts, { ScriptTarget } from "typescript";
 import "../style.css";
