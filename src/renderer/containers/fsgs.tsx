@@ -21,7 +21,7 @@ import { messageLayerConfigDefault } from "../configs/config";
 import ts from "typescript";
 import "../style.css";
 
-let kag: Fsgs;
+let fag: Fsgs;
 let fsgs: Fsgs;
 let mp: {};
 
@@ -91,6 +91,7 @@ export class Fsgs extends React.Component<FsgsProps> {
       index: number;
     };
   };
+  private isPausing: boolean;
 
   constructor(props: FsgsProps) {
     super(props);
@@ -136,6 +137,7 @@ export class Fsgs extends React.Component<FsgsProps> {
     };
     this.labelStore = {};
     this.macroStore = {};
+    this.isPausing = false;
     this.initialize();
   }
 
@@ -144,11 +146,11 @@ export class Fsgs extends React.Component<FsgsProps> {
     sf = {};
     tf = {};
 
-    kag = fsgs = this;
+    fag = fsgs = this;
 
     document.onkeydown = this.onKeydown;
 
-    await window.api.onMenuClicked((action: string) => {
+    await window.api.onMenuClicked(async (action: string) => {
       switch (action) {
         case "go-to-start": {
           this.goToStart();
@@ -159,7 +161,7 @@ export class Fsgs extends React.Component<FsgsProps> {
           break;
         }
         case "exit": {
-          this.shutdown();
+          await this.shutdown();
           break;
         }
       }
@@ -263,6 +265,9 @@ export class Fsgs extends React.Component<FsgsProps> {
   }
 
   updateCanvas = async () => {
+    if (this.isPausing){
+      return;
+    }
     if (this.dom) {
       const baseLayerSize = this.baseLayer?.getSize();
       if (baseLayerSize?.height === document.body.clientHeight) {
@@ -656,6 +661,7 @@ export class Fsgs extends React.Component<FsgsProps> {
   };
 
   shutdown = async () => {
+    this.isPausing = true;
     const {
       response,
       checkboxChecked,
@@ -669,6 +675,7 @@ export class Fsgs extends React.Component<FsgsProps> {
     if (response === 0) {
       window.close();
     }
+    this.isPausing = false;
   };
 
   getCanvasPosition = (pagePosition: Position) => {
@@ -752,6 +759,9 @@ export class Fsgs extends React.Component<FsgsProps> {
   };
 
   private onKeydown = async (e: KeyboardEvent) => {
+    if(this.isPausing){
+      return;
+    }
     switch (e.code) {
       case "Enter": {
         if (e.altKey) {
@@ -1189,6 +1199,31 @@ export class Fsgs extends React.Component<FsgsProps> {
     }
   };
 
+  onClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    if(this.isPausing){
+      return;
+    }
+    const position = this.getCanvasPosition({
+      x: e.pageX - this.offset.x,
+      y: e.pageY - this.offset.y,
+    });
+    console.log(`X: ${position.x}, Y: ${position.y}`);
+    this.click();
+  }
+
+  onMouseMove = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    if(this.isPausing){
+      return;
+    }
+    for (const messageLayer of this.messageLayers) {
+      this.currentMousePosition = this.getCanvasPosition({
+        x: e.pageX - this.offset.x,
+        y: e.pageY - this.offset.y,
+      });
+      messageLayer?.setCursorPosition(this.currentMousePosition);
+    }
+  }
+
   render() {
     return (
       <div
@@ -1200,23 +1235,8 @@ export class Fsgs extends React.Component<FsgsProps> {
           width: `${this.getScWidth()}px`,
           height: `${this.getScHeight()}px`,
         }}
-        onClick={(e) => {
-          const position = this.getCanvasPosition({
-            x: e.pageX - this.offset.x,
-            y: e.pageY - this.offset.y,
-          });
-          console.log(`X: ${position.x}, Y: ${position.y}`);
-          this.click();
-        }}
-        onMouseMove={(e) => {
-          for (const messageLayer of this.messageLayers) {
-            this.currentMousePosition = this.getCanvasPosition({
-              x: e.pageX - this.offset.x,
-              y: e.pageY - this.offset.y,
-            });
-            messageLayer?.setCursorPosition(this.currentMousePosition);
-          }
-        }}
+        onClick={this.onClick}
+        onMouseMove={this.onMouseMove}
       >
         <ImageLayer
           key="base-layer"

@@ -38,11 +38,12 @@ interface MessageLayerElementSet {
   form: HTMLDivElement | null;
 }
 
-const CHARACTER_SET_1 = /[、。，､,.｡]/;
+const CHARACTER_SET_1 = /[、。，､｡]/;
 const CHARACTER_SET_2 = /[ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮヵヶ]/;
-const CHARACTER_SET_3 = /[「『（【［〈《〔｛〘〚＜」』）】］〉》〕｝〙〛＞；：]/;
-const CHARACTER_SET_4 = /[«｢{\[\(<»｣}\]\)>]/;
+const CHARACTER_SET_3 = /[「『（【［〈《〔｛〘〚＜」』）】］〉》〕｝〙〛＞；：｀]/;
+const CHARACTER_SET_4 = /[«｢{\[\(<»｣}\]\)>ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!"#$%&'~=\-\^\\@`+*,./?_]/;
 const CHARACTER_SET_5 = /[‹›;:]/;
+const CHARACTER_SET_6 = /[”’]/;
 
 export class MessageLayer extends React.Component<
   MessageLayerProps,
@@ -342,6 +343,7 @@ export class MessageLayer extends React.Component<
   };
 
   setVertical = (vertical: boolean) => {
+    console.log("%cVertical mode is under development", "color: orange");
     this.vertical = vertical;
     this.recalculateCurrentCaretPosition();
   };
@@ -570,7 +572,6 @@ export class MessageLayer extends React.Component<
 
   writePosition = async (width: number, height: number, proceedPosition: boolean = true) => {
     if (this.vertical) {
-      console.log("%cVertical mode is under development", "color: orange");
       if (
         this.currentCaretPosition.y + height >
         this.getMH() + this.getMT() - this.getMarginB()
@@ -678,7 +679,7 @@ export class MessageLayer extends React.Component<
     context.textBaseline = "top";
     context.font = this.getFont();
     const width = context.measureText(character).width;
-    const height = this.getFontSize();
+    let height = this.getFontSize();
 
     if (this.vertical) {
       let xOffset = 0;
@@ -700,8 +701,8 @@ export class MessageLayer extends React.Component<
           break;
         }
         case CHARACTER_SET_4.test(character): {
-          xOffset = height * 0.5;
           yOffset = -height * 1.5;
+          height /= 2;
           break;
         }
         case CHARACTER_SET_5.test(character): {
@@ -709,7 +710,15 @@ export class MessageLayer extends React.Component<
           yOffset = -height * 1.7;
           break;
         }
+        case CHARACTER_SET_6.test(character): {
+          xOffset = height * 0.5;
+          break;
+        }
       }
+
+      // FIXME: When the character is CHARACTER_SET_6,
+      //        and meaning the end of quotation,
+      //        the character should be shift to right.
 
       if ((new RegExp(CHARACTER_SET_3.source + '|' + CHARACTER_SET_4.source + '|' + CHARACTER_SET_5.source)).test(character)) {
         if (!this.isCharacterRotated) {

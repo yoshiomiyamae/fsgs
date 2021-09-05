@@ -159,8 +159,10 @@ export class FagParser {
           break;
         }
         case '"': {
-          if (!inScript) {
+          if (inTag && !inScript) {
             inText = !inText;
+          } else {
+            temp += currentCharacter;
           }
           break;
         }
