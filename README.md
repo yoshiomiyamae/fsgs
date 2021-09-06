@@ -37,9 +37,9 @@ https://github.com/othneildrew/Best-README-Template
   <h3 align="center">FSGS</h3>
 
   <p align="center">
-    An awesome README template to jumpstart your projects!
+    Multi-platform Adventure Game Engine
     <br />
-    <a href="https://github.com/yoshiomiyamae/fsgs/docs"><strong>Explore the docs »</strong></a>
+    <a href="https://github.com/yoshiomiyamae/fsgs/tree/master/docs"><strong>Explore the docs »</strong></a>
     <br />
     <br />
     <!-- <a href="https://github.com/yoshiomiyamae/fsgs">View Demo</a>
