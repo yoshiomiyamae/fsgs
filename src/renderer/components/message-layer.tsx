@@ -11,6 +11,8 @@ import {
   ClickableArea,
   ColorObject,
   TransitionSetting,
+  SetButtonArgs,
+  ButtonCollection,
 } from "../models/fsgs-model";
 import {
   sleep,
@@ -67,6 +69,7 @@ export class MessageLayer extends React.Component<
   private textAlignment: Alignment;
   private afterSetAlignment: boolean;
   private clickableAreas: ClickableAreaCollection;
+  private buttons: ButtonCollection;
   private cursorPosition: Position | null;
   private noWait: boolean;
   private ruby: string;
@@ -128,6 +131,7 @@ export class MessageLayer extends React.Component<
     };
     this.afterSetAlignment = false;
     this.clickableAreas = [];
+    this.buttons = [];
     this.cursorPosition = null;
     this.noWait = false;
     this.ruby = "";
@@ -200,6 +204,36 @@ export class MessageLayer extends React.Component<
     this.clickableAreas.push({
       area: rectangle,
       params,
+    });
+  };
+
+  setButton = async (args: SetButtonArgs) => {
+    if (!args.image){
+      return;
+    }
+    const image = args.image as HTMLImageElement;
+    const width = image.naturalWidth;
+    const height = image.naturalHeight;
+    const context = this.fore.base?.getContext("2d");
+    const rectangle: Rectangle = {
+      position: { ...this.currentCaretPosition },
+      size: { width, height },
+    }
+    console.log("!!!",this.currentCaretPosition);
+    context?.drawImage(
+      image,
+      0,
+      0,
+      width / 3,
+      height,
+      this.currentCaretPosition.x,
+      this.currentCaretPosition.y,
+      width / 3,
+      height,
+    );
+    this.buttons.push({
+      area: rectangle,
+      params: args,
     });
   };
 
@@ -969,6 +1003,7 @@ export class MessageLayer extends React.Component<
     this.lineWidths = [];
     this.currentLine = 0;
     this.clickableAreas = [];
+    this.buttons = [];
     while (this.fore.form?.firstChild) {
       this.fore.form.firstChild.remove();
     }
@@ -989,9 +1024,21 @@ export class MessageLayer extends React.Component<
       return null;
     }
   };
+  
+  setCurrentCaretPosition = (position: Position) => {
+    const newPosition: Position = {
+      x: position.x || this.currentCaretPosition.x,
+      y: position.y || this.currentCaretPosition.y,
+    }
+    this.currentCaretPosition = newPosition;
+  }
 
   setCursorPosition = (position: Position) => {
-    this.cursorPosition = position;
+    const newPosition: Position = {
+      x: position.x || this.cursorPosition?.x || 0,
+      y: position.y || this.cursorPosition?.y || 0,
+    }
+    this.cursorPosition = newPosition;
     const mouseInClickableAreas = this.mouseInClickableArea();
     this.clearHighlight(this.back);
     this.clearHighlight(this.fore);

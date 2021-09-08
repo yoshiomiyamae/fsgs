@@ -10,6 +10,7 @@ import {
   SetScriptArgs,
   StackItem,
   LayerTypes,
+  SetButtonArgs,
 } from "../models/fsgs-model";
 import {
   MessageLayer,
@@ -25,8 +26,8 @@ export let fag: Fsgs;
 let fsgs: Fsgs;
 let mp: {};
 
-const f = {};
-const sf = {};
+let f = {};
+let sf = {};
 const tf = {};
 export const g = {};
 export const c = {};
@@ -88,6 +89,10 @@ export class Fsgs extends React.Component<FsgsProps> {
     };
   };
   private isPausing: boolean;
+  private isHistoryRecording: boolean;
+  private isHistoryEnabled: boolean;
+  private isSaveEnabled: boolean;
+  private isLoadEnabled: boolean;
 
   constructor(props: FsgsProps) {
     super(props);
@@ -134,6 +139,10 @@ export class Fsgs extends React.Component<FsgsProps> {
     this.labelStore = {};
     this.macroStore = {};
     this.isPausing = false;
+    this.isHistoryRecording = true;
+    this.isHistoryEnabled = true;
+    this.isSaveEnabled = true;
+    this.isLoadEnabled = true;
     this.initialize();
   }
 
@@ -392,6 +401,18 @@ export class Fsgs extends React.Component<FsgsProps> {
     this.jump(null, data.startFrom, null, data.offset);
   };
 
+  setButton = async (args: SetButtonArgs) => {
+    const image = new Image();
+    image.src = args.image as string;
+    image.onload = async () => {
+      const messageLayer = this.messageLayers[
+        this.currentMessageLayer
+      ];
+      args.image = image;
+      messageLayer?.setButton(args);
+    }
+  }
+
   setImage = async (args: SetImageArgs) => {
     const image = new Image();
     image.src = args.data;
@@ -439,7 +460,6 @@ export class Fsgs extends React.Component<FsgsProps> {
   };
 
   operate = async (operation: Operation) => {
-    console.log(operation);
     if (
       "inherit_macro_params" in operation.params &&
       operation.params.inherit_macro_params === true
@@ -465,9 +485,10 @@ export class Fsgs extends React.Component<FsgsProps> {
         return "";
       }, "");
     }
-    if (this.ignoreIf || operation.action in ["else", "elseif", "endif"]) {
+    if (this.ignoreIf && ['elseif', 'endif'].indexOf(operation.action) === -1) {
       return;
     }
+    console.log(operation);
     switch (operation.action) {
       case "ch": {
         this.ch(operation.params.text);
@@ -634,7 +655,6 @@ export class Fsgs extends React.Component<FsgsProps> {
         this.if(operation.params.exp);
         break;
       }
-      case "else":
       case "endif": {
         this.endif();
         break;
@@ -652,6 +672,34 @@ export class Fsgs extends React.Component<FsgsProps> {
         break;
       }
       case "commit": {
+        break;
+      }
+      case "clearvar": {
+        this.clearvar();
+        break;
+      }
+      case "clearsysvar": {
+        this.clearsysvar();
+        break;
+      }
+      case "store": {
+        this.store(operation.params.enabled);
+        break;
+      }
+      case "history": {
+        this.history(operation.params);
+        break;
+      }
+      case "delay": {
+        this.delay(operation.params.speed);
+        break;
+      }
+      case "locate": {
+        this.locate(operation.params);
+        break;
+      }
+      case "button": {
+        await this.button(operation.params);
         break;
       }
       default: {
@@ -718,6 +766,7 @@ export class Fsgs extends React.Component<FsgsProps> {
     console.log(
       `storage: ${storage}, target: ${target}, condition: ${condition}, currentScript: ${this.currentScriptName}, offset: ${offset}`
     );
+    // this.ignoreIf = false;
     if (condition && !eval(condition)) {
       return;
     }
@@ -913,11 +962,12 @@ export class Fsgs extends React.Component<FsgsProps> {
   return = () => {
     const stackItem = this.stack.pop();
     if (stackItem) {
-      this.jump(stackItem.scriptName, stackItem.programCounter + 1);
+      this.jump(stackItem.scriptName, stackItem.programCounter);
     }
   };
 
   endmacro = () => {
+    // this.ignoreIf = false;
     const stackItem = this.stack.pop();
     if (stackItem) {
       this.jump(stackItem.scriptName, stackItem.programCounter);
@@ -925,6 +975,7 @@ export class Fsgs extends React.Component<FsgsProps> {
   };
 
   macro = () => {
+    // this.ignoreIf = false;
     if (this.script) {
       while (this.script.scenario[++this.programCounter].action !== "endmacro");
     }
@@ -1004,6 +1055,7 @@ export class Fsgs extends React.Component<FsgsProps> {
   };
 
   label = (operation: Operation) => {
+    console.log(`Label: ${operation.params.name} (${operation.params.alias}) passed.`)
     this.latestLabel = operation;
   };
 
@@ -1070,7 +1122,7 @@ export class Fsgs extends React.Component<FsgsProps> {
     if (!messageLayer) {
       return;
     }
-    if (params.frame) {
+    if (!!params.frame) {
       const data = await window.api.getImage(`image/${params.frame}`);
       await this.setImage({
         data,
@@ -1159,7 +1211,9 @@ export class Fsgs extends React.Component<FsgsProps> {
 
   if = (exp: string) => {
     if (exp) {
-      this.ignoreIf = !this.eval(exp);
+      const result = this.eval(exp);
+      console.log(`Ignore if: ${!result}`)
+      this.ignoreIf = !result;
     }
   };
 
@@ -1178,6 +1232,62 @@ export class Fsgs extends React.Component<FsgsProps> {
   wt = () => {
     this.transitionWaiting = true;
   };
+
+  clearvar = () => {
+    f = {};
+  }
+
+  clearsysvar = () => {
+    sf = {};
+  }
+
+  store = (params: ParameterCollection) => {
+    if (params.store){
+      this.isSaveEnabled = params.store === 'true';
+    }
+    if (params.restore) {
+      this.isLoadEnabled = params.restore === 'true';
+    }
+  }
+
+  history = (params: ParameterCollection) => {
+    if (params.output){
+      this.isHistoryRecording = params.output === 'true';
+    }
+    if (params.enabled) {
+      this.isHistoryEnabled = params.enabled === 'true';
+    }
+  }
+
+  delay = (speed: string | number) => {
+    if (typeof speed === 'string'){
+      this.nowait();
+    } else {
+      for (const messageLayer of this.messageLayers) {
+        messageLayer?.setSpeed(speed);
+      }
+    }
+  }
+
+  locate = (params: ParameterCollection) => {
+    for (const messageLayer of this.messageLayers) {
+      messageLayer?.setCurrentCaretPosition({
+        x: params.x,
+        y: params.y,
+      })
+    }
+  }
+
+  button = async (params: ParameterCollection) => {
+    if (!params.graphic) {
+      return;
+    }
+    const image = await window.api.getImage(`bgimage/${params.graphic}`);
+    await this.setButton({
+      image,
+      ...params,
+    });
+  }
 
   default = (operation: Operation) => {
     if (this.script && operation.action in this.macroStore) {

@@ -239,6 +239,13 @@ export interface ClickableArea {
 
 export type ClickableAreaCollection = ClickableArea[];
 
+export interface Button {
+  area: Rectangle,
+  params: SetButtonArgs,
+}
+
+export type ButtonCollection = Button[];
+
 export enum Cursor {
   Arrow,
   HandPoint,
@@ -283,12 +290,31 @@ export enum StayValue {
 }
 
 export interface SetImageArgs {
-  layer: "base" | "graph" | "message" | "transition";
+  layer: "base" | "graph" | "message" | "transition" | "button";
   page?: LayerPages;
   layerNumber?: number;
   left?: number;
   top?: number;
   data: string;
+}
+
+export interface SetButtonArgs {
+  image?: HTMLImageElement | string,
+  graphicKey?: number | "adapt",
+  storage?: string,
+  target?: string,
+  recthit?: boolean,
+  exp?: string,
+  hint?: string,
+  onEnter?: Function,
+  onLeave?: Function,
+  countPage?: boolean,
+  clickSE?: string,
+  clickSEBuf?: number,
+  enterSE?: string,
+  enterSEBuf?: number,
+  leaveSE?: string,
+  leaveSEBuf?: number,
 }
 
 export interface SetRuleTransitionArgs {
