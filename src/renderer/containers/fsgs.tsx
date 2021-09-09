@@ -759,7 +759,7 @@ export class Fsgs extends React.Component<FsgsProps> {
 
   jump = (
     storage: string | null,
-    target: string | number | null,
+    target?: string | number | null,
     condition?: string | null,
     offset?: number
   ) => {
@@ -770,19 +770,19 @@ export class Fsgs extends React.Component<FsgsProps> {
     if (condition && !eval(condition)) {
       return;
     }
-    if (storage && !target) {
+    if (storage && (target === null || target === undefined)) {
       if (storage !== this.currentScriptName) {
         this.loadScript(storage, 0);
       } else {
         this.programCounter = 0;
       }
-    } else if (storage && target) {
+    } else if (storage && target !== null && target !== undefined) {
       if (storage !== this.currentScriptName) {
         this.loadScript(storage, target, 1);
       } else {
         this.programCounter = this.getProgramCounter(target);
       }
-    } else if (!storage && target) {
+    } else if (!storage && target !== null && target !== undefined) {
       this.programCounter = this.getProgramCounter(target) + (offset || 0);
     } else {
       this.programCounter = 0;
@@ -962,7 +962,7 @@ export class Fsgs extends React.Component<FsgsProps> {
   return = () => {
     const stackItem = this.stack.pop();
     if (stackItem) {
-      this.jump(stackItem.scriptName, stackItem.programCounter);
+      this.jump(stackItem.scriptName, stackItem.programCounter + 1);
     }
   };
 
@@ -1290,6 +1290,7 @@ export class Fsgs extends React.Component<FsgsProps> {
   }
 
   default = (operation: Operation) => {
+    console.log(this.macroStore);
     if (this.script && operation.action in this.macroStore) {
       // Macro
       this.stack.push({
