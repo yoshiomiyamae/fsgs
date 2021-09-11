@@ -232,19 +232,38 @@ export interface Rectangle {
   position: Position;
 }
 
-export interface ClickableArea {
+export interface Link {
+  link: number;
   area: Rectangle;
   params: ParameterCollection;
 }
 
-export type ClickableAreaCollection = ClickableArea[];
+export type LinkCollection = Link[];
 
+export const isInstanceOfLink = (obj: any): obj is Link => {
+  return (
+    obj !== null &&
+    typeof obj === "object" &&
+    typeof obj.link === "number"
+    );
+}
 export interface Button {
-  area: Rectangle,
-  params: SetButtonArgs,
+  button: number;
+  area: Rectangle;
+  params: SetButtonArgs;
 }
 
 export type ButtonCollection = Button[];
+
+export const isInstanceOfButton = (obj: any): obj is Button => {
+  return (
+    obj !== null &&
+    typeof obj === "object" &&
+    typeof obj.button === "number"
+    );
+}
+
+export type ClickableAreaCollection = (Link | Button)[];
 
 export enum Cursor {
   Arrow,

@@ -1272,8 +1272,8 @@ export class Fsgs extends React.Component<FsgsProps> {
   locate = (params: ParameterCollection) => {
     for (const messageLayer of this.messageLayers) {
       messageLayer?.setCurrentCaretPosition({
-        x: params.x,
-        y: params.y,
+        x: +params.x,
+        y: +params.y,
       })
     }
   }

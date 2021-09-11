@@ -6,13 +6,17 @@ import {
   MessageLayerConfig,
   Alignment,
   ParameterCollection,
-  ClickableAreaCollection,
+  LinkCollection,
   Rectangle,
-  ClickableArea,
+  Link,
   ColorObject,
   TransitionSetting,
   SetButtonArgs,
   ButtonCollection,
+  ClickableAreaCollection,
+  Button,
+  isInstanceOfButton,
+  isInstanceOfLink,
 } from "../models/fsgs-model";
 import {
   sleep,
@@ -68,7 +72,7 @@ export class MessageLayer extends React.Component<
   private currentLine: number;
   private textAlignment: Alignment;
   private afterSetAlignment: boolean;
-  private clickableAreas: ClickableAreaCollection;
+  private links: LinkCollection;
   private buttons: ButtonCollection;
   private cursorPosition: Position | null;
   private noWait: boolean;
@@ -130,7 +134,7 @@ export class MessageLayer extends React.Component<
       y: this.getMarginT() + this.getMT(),
     };
     this.afterSetAlignment = false;
-    this.clickableAreas = [];
+    this.links = [];
     this.buttons = [];
     this.cursorPosition = null;
     this.noWait = false;
@@ -201,7 +205,8 @@ export class MessageLayer extends React.Component<
     if (!context || !rectangle) {
       return;
     }
-    this.clickableAreas.push({
+    this.links.push({
+      link: 0,
       area: rectangle,
       params,
     });
@@ -211,30 +216,22 @@ export class MessageLayer extends React.Component<
     if (!args.image){
       return;
     }
+    if (!this.fore.highlight) {
+      return;
+    }
     const image = args.image as HTMLImageElement;
-    const width = image.naturalWidth;
+    const width = image.naturalWidth / 3;
     const height = image.naturalHeight;
-    const context = this.fore.base?.getContext("2d");
     const rectangle: Rectangle = {
       position: { ...this.currentCaretPosition },
       size: { width, height },
     }
-    console.log("!!!",this.currentCaretPosition);
-    context?.drawImage(
-      image,
-      0,
-      0,
-      width / 3,
-      height,
-      this.currentCaretPosition.x,
-      this.currentCaretPosition.y,
-      width / 3,
-      height,
-    );
     this.buttons.push({
+      button: 0,
       area: rectangle,
       params: args,
     });
+    console.log(this.buttons);
   };
 
   setEdit = (params: ParameterCollection, onInput: (value: string) => void) => {
@@ -1002,18 +999,18 @@ export class MessageLayer extends React.Component<
     this.clearHighlight(this.fore);
     this.lineWidths = [];
     this.currentLine = 0;
-    this.clickableAreas = [];
+    this.links = [];
     this.buttons = [];
     while (this.fore.form?.firstChild) {
       this.fore.form.firstChild.remove();
     }
   };
 
-  mouseInClickableArea = (): ClickableAreaCollection | null => {
+  getClickableAreaMouseIn = (): ClickableAreaCollection | null => {
     if (!this.cursorPosition) {
       return null;
     }
-    const mouseInClickableAreas = this.clickableAreas.filter(
+    const mouseInClickableAreas = [...this.links, ...this.buttons].filter(
       (clickableArea) =>
         this.cursorPosition &&
         positionIsInRectangle(this.cursorPosition, clickableArea.area)
@@ -1024,6 +1021,22 @@ export class MessageLayer extends React.Component<
       return null;
     }
   };
+
+  getClickableAreaMouseNotIn = (): ClickableAreaCollection | null => {
+    if (!this.cursorPosition) {
+      return null;
+    }
+    const mouseNotInClickableAreas = [...this.links, ...this.buttons].filter(
+      (clickableArea) =>
+        !this.cursorPosition ||
+        !positionIsInRectangle(this.cursorPosition, clickableArea.area)
+    );
+    if (mouseNotInClickableAreas.length > 0) {
+      return mouseNotInClickableAreas;
+    } else {
+      return null;
+    }
+  }; 
   
   setCurrentCaretPosition = (position: Position) => {
     const newPosition: Position = {
@@ -1039,7 +1052,7 @@ export class MessageLayer extends React.Component<
       y: position.y || this.cursorPosition?.y || 0,
     }
     this.cursorPosition = newPosition;
-    const mouseInClickableAreas = this.mouseInClickableArea();
+    const mouseInClickableAreas = this.getClickableAreaMouseIn();
     this.clearHighlight(this.back);
     this.clearHighlight(this.fore);
     if (mouseInClickableAreas) {
@@ -1047,9 +1060,42 @@ export class MessageLayer extends React.Component<
         this.highlightArea(clickableArea);
       }
     }
+    const mouseNotInClickableAreas = this.getClickableAreaMouseNotIn();
+    if (mouseNotInClickableAreas) {
+      for (const clickableArea of mouseNotInClickableAreas) {
+        if (isInstanceOfButton(clickableArea)){
+          this.drawButton(clickableArea);
+        }
+      }
+    }
   };
 
-  highlightArea = (clickableArea: ClickableArea) => {
+  drawButton = (button: Button, cursorOn: boolean = false) => {
+    if (!button.params.image){
+      return;
+    }
+    if (!this.fore.highlight) {
+      return;
+    }
+    const context = this.fore.highlight.getContext("2d");
+    if (!context) {
+      return;
+    }
+    const image = button.params.image as HTMLImageElement;
+    context.drawImage(
+      image,
+      cursorOn ? button.area.size.width * 2 : 0,
+      0,
+      button.area.size.width,
+      button.area.size.height,
+      button.area.position.x,
+      button.area.position.y,
+      button.area.size.width,
+      button.area.size.height,
+    );
+  }
+
+  highlightArea = (clickableArea: Link | Button) => {
     if (!this.fore.highlight) {
       return;
     }
@@ -1063,17 +1109,21 @@ export class MessageLayer extends React.Component<
       this.fore.highlight.width,
       this.fore.highlight.height
     );
-    context.globalAlpha = 0.2;
-    context.fillStyle = integerToColorString(
-      this.getLinkColor(colorStringToInteger(clickableArea.params.color))
-    );
-    context.fillRect(
-      clickableArea.area.position.x,
-      clickableArea.area.position.y,
-      clickableArea.area.size.width,
-      clickableArea.area.size.height
-    );
-    context.globalAlpha = 1;
+    if (isInstanceOfLink(clickableArea)) {
+      context.globalAlpha = 0.2;
+      context.fillStyle = integerToColorString(
+        this.getLinkColor(colorStringToInteger(clickableArea.params.color))
+      );
+      context.fillRect(
+        clickableArea.area.position.x,
+        clickableArea.area.position.y,
+        clickableArea.area.size.width,
+        clickableArea.area.size.height
+      );
+      context.globalAlpha = 1;
+    } else if (isInstanceOfButton(clickableArea)) {
+      this.drawButton(clickableArea, true);
+    }
   };
 
   clearHighlight = (page: MessageLayerElementSet) => {
@@ -1087,7 +1137,7 @@ export class MessageLayer extends React.Component<
   };
 
   click = () => {
-    const mouseInClickableAreas = this.mouseInClickableArea();
+    const mouseInClickableAreas = this.getClickableAreaMouseIn();
     if (!mouseInClickableAreas) {
       return null;
     }
@@ -1117,7 +1167,7 @@ export class MessageLayer extends React.Component<
   };
 
   getNextChoicePosition = (currentPosition: Position) => {
-    const nextCandidates = this.clickableAreas.filter(
+    const nextCandidates = this.links.filter(
       (clickableArea) => currentPosition.y < clickableArea.area.position.y
     );
     let nextArea: Rectangle;
@@ -1134,7 +1184,7 @@ export class MessageLayer extends React.Component<
         }
       }).area;
     } else {
-      nextArea = this.clickableAreas.reduce((previousValue, currentValue) => {
+      nextArea = this.links.reduce((previousValue, currentValue) => {
         if (
           previousValue.area.position.y < currentValue.area.position.y ||
           (previousValue.area.position.y === currentValue.area.position.y &&
@@ -1153,7 +1203,7 @@ export class MessageLayer extends React.Component<
   };
 
   getPreviousChoicePosition = (currentPosition: Position) => {
-    const nextCandidates = this.clickableAreas.filter(
+    const nextCandidates = this.links.filter(
       (clickableArea) => currentPosition.y >= clickableArea.area.position.y
     );
     nextCandidates.pop();
@@ -1171,7 +1221,7 @@ export class MessageLayer extends React.Component<
         }
       }).area;
     } else {
-      nextArea = this.clickableAreas.reduce((previousValue, currentValue) => {
+      nextArea = this.links.reduce((previousValue, currentValue) => {
         if (
           previousValue.area.position.y > currentValue.area.position.y ||
           (previousValue.area.position.y === currentValue.area.position.y &&
