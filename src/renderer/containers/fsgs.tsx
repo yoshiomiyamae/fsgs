@@ -1153,10 +1153,11 @@ export class Fsgs extends React.Component<FsgsProps> {
   }
 
   position = async (params: ParameterSet) => {
-    const messageLayerNumber = this.convertMessageLayerNumberToInt(params.layer);
-    console.log(`Message Layer Number: ${messageLayerNumber}`);
-    let messageLayer;
+    let messageLayerNumber = 0;
+    let messageLayer: MessageLayer | null = null;
     if (params.layer){
+      messageLayerNumber = this.convertMessageLayerNumberToInt(params.layer);
+      console.log(`Message Layer Number: ${messageLayerNumber}`);
       messageLayer = this.messageLayers[messageLayerNumber];
     } else {
       messageLayer = this.messageLayers[this.currentMessageLayer];
@@ -1221,35 +1222,99 @@ export class Fsgs extends React.Component<FsgsProps> {
     this.previousLabel = this.latestLabel;
   };
 
+  transBaseLayerUniversal = (params: ParameterSet, rule: HTMLImageElement) => [this.baseLayer]
+    .filter(layer => layer !== null)
+    .map(layer => layer!.transition(
+      "universal",
+      params.time,
+      {
+        rule: rule,
+        vague: params.vague,
+      }
+    ));
+  transMessageLayerUniversal = (params: ParameterSet, rule: HTMLImageElement) => this.messageLayers
+    .filter(layer => layer !== null)
+    .map(layer => layer!.transition(
+      "universal",
+      params.time,
+      {
+        rule: rule,
+        vague: params.vague,
+      }
+    ));
+  transCharacterLayerUniversal = (params: ParameterSet, rule: HTMLImageElement) => this.characterLayers
+    .filter(layer => layer !== null)
+    .map(layer => layer!.transition(
+      "universal",
+      params.time,
+      {
+        rule: rule,
+        vague: params.vague,
+      }
+    ));
+  transBaseLayer = (params: ParameterSet) => [this.baseLayer]
+    .filter(layer => layer !== null)
+    .map(layer => layer!.transition(params.method, parseInt(params.time), {
+      from: params.from,
+      stay: params.stay,
+    }));
+  transMessageLayer = (params: ParameterSet) => this.messageLayers
+    .filter(layer => layer !== null)
+    .map(layer => layer!.transition(params.method, parseInt(params.time), {
+      from: params.from,
+      stay: params.stay,
+    }));
+  transCharacterLayer = (params: ParameterSet) => this.characterLayers
+    .filter(layer => layer !== null)
+    .map(layer => layer!.transition(params.method, parseInt(params.time), {
+      from: params.from,
+      stay: params.stay,
+    }));
+
   trans = async (params: ParameterSet) => {
     const layerNumber = this.parseLayerNumber(params.layer);
+    const dlayer = params.layer ? layerNumber.type : LayerTypes.Base;
     if (!params.method || params.method === "universal") {
       const data = await window.api.doRuleTransition(`${params.rule}`);
-      const dlayer = params.layer ? layerNumber.type : LayerTypes.Base;
       const image = new Image();
       image.src = data;
-      image.onload = () => {
-        const layer =
-          dlayer === LayerTypes.Base
-            ? this.baseLayer
-            : dlayer === LayerTypes.Message
-            ? this.messageLayers[layerNumber.number]
-            : this.characterLayers[layerNumber.number];
-        layer?.transition("universal", params.time, {
-          rule: image,
-          vague: params.vague,
-        });
+      image.onload = async () => {
+        switch (dlayer) {
+          case LayerTypes.Base: {
+            const baseLayerTransition = this.transBaseLayerUniversal(params, image);
+            const messageLayerTransition = this.transMessageLayerUniversal(params, image);
+            const characterLayerTransition = this.transCharacterLayerUniversal(params, image);
+            await Promise.all([...baseLayerTransition, ...messageLayerTransition, ...characterLayerTransition]);
+            break;
+          }
+          case LayerTypes.Message: {
+            await Promise.all(this.transMessageLayerUniversal(params, image));
+            break;
+          }
+          case LayerTypes.Character: {
+            await Promise.all(this.transCharacterLayerUniversal(params, image));
+            break;
+          }
+        }
       };
     } else {
-      const layer = params.layer
-        ? layerNumber.type === LayerTypes.Message
-          ? this.messageLayers[layerNumber.number]
-          : this.characterLayers[layerNumber.number]
-        : this.baseLayer;
-      layer?.transition(params.method, parseInt(params.time), {
-        from: params.from,
-        stay: params.stay,
-      });
+      switch (dlayer) {
+        case LayerTypes.Base: {
+          const baseLayerTransition = this.transBaseLayer(params);
+          const messageLayerTransition = this.transMessageLayer(params);
+          const characterLayerTransition = this.transCharacterLayer(params,);
+          await Promise.all([...baseLayerTransition, ...messageLayerTransition, ...characterLayerTransition]);
+          break;
+        }
+        case LayerTypes.Message: {
+          await Promise.all(this.transMessageLayer(params));
+          break;
+        }
+        case LayerTypes.Character: {
+          await Promise.all(this.transCharacterLayer(params));
+          break;
+        }
+      }
     }
   };
 
