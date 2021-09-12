@@ -8,7 +8,7 @@ import {
   shell,
 } from "electron";
 import { GetScriptArgs } from "./main/model";
-import { SetScriptArgs } from "./renderer/models/fsgs-model";
+import { Config, SetScriptArgs } from "./renderer/models/fsgs-model";
 contextBridge.exposeInMainWorld("api", {
   getScript: async (args: GetScriptArgs): Promise<SetScriptArgs> =>
     ipcRenderer.invoke("get-script", args),
@@ -16,6 +16,8 @@ contextBridge.exposeInMainWorld("api", {
     ipcRenderer.invoke("get-image", filePath),
   getAudio: async (filePath: string): Promise<string> =>
     ipcRenderer.invoke("get-audio", filePath),
+  getConfig: async (): Promise<Config> =>
+    ipcRenderer.invoke("get-config"),
   doRuleTransition: async (fileName: string): Promise<string> =>
     ipcRenderer.invoke("do-rule-transition", fileName),
   onMenuClicked: (func: (action: string) => void): IpcRenderer =>

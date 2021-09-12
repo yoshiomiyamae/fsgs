@@ -5,6 +5,7 @@ import {
   Rectangle,
   remote,
 } from "electron";
+import { Config } from "../renderer/models/fsgs-model";
 import { GetScriptArgs } from "./main/model";
 import { SetScriptArgs } from "./renderer/models/fsgs-model";
 
@@ -14,6 +15,7 @@ declare global {
       getScript: (args: GetScriptArgs) => Promise<SetScriptArgs>;
       getImage: (filePath: string) => Promise<string>;
       getAudio: (filePath: string) => Promise<string>;
+      getConfig: () => Promise<Config>;
       doRuleTransition: (fileName: string) => Promise<string>;
       onMenuClicked: (listner: (...args: any[]) => void) => IpcRenderer;
       window: {

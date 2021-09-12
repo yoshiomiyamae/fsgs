@@ -16,7 +16,6 @@ export interface GetAudioArgs {
 export interface GetScriptArgs {
   scriptName: string;
   startFrom: string | number;
-  offset: number;
 }
 
 export interface DoRuleTransitionArgs {

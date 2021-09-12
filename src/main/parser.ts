@@ -185,6 +185,9 @@ export class FagParser {
                 tagParams[paramName] = temp;
                 paramName = "";
                 temp = "";
+              } else {
+                tagParams[temp] = true;
+                temp = "";
               }
             } else {
               temp = "";

@@ -1,0 +1,104 @@
+= FSGS Tag Reference Guide
+:lang: en
+:doctype: book
+:toc: left
+:toclevels: 2
+:toc-title: Contents
+:sectnums:
+:sectnumlevels: 4
+:sectlinks:
+:imagesdir: ./_images
+:icons: font
+:source-highlighter: coderay
+:chapter-label:
+:example-caption: e.g
+:table-caption: table
+:figure-caption: figure
+:author: Yoshio Miyamae
+:revnumber: 1.0
+:revdate: 2021/9/5
+:experimental:
+:data-uri:
+
+## animstart (Start an animation)
+*Not implemented*
+|===
+|Attribute|Must|Value|Description
+
+|layer|yes|"base" or integer of equal or more than 0|Specify the layer to start the animation.
+Specify "base" to specify the background layer, or an integer greater than 0 to specify the corresponding foreground layer. The specified layer must have animation information loaded on it.
+|page|no|"back" or "fore"|Specifies whether to target the fore-page or the back-page. If omitted, it is assumed to be the fore page.
+|seg|yes|integer of equal or more than 1|The animation will start at the segment number specified by this attribute.
+Different segment numbers can have multiple animations running at the same time.
+The segment number can be any number, but do not specify a larger number than necessary. Also, segment 0 cannot be specified.
+|target|yes|Start label name|Specify the label in the asd file to start the animation.
+Do not forget the * (asterisk), just like the link tag, etc.
+|===
+
+Starts the animation at the specified segment, from the specified label.
+
+Segments are a concept that allows multiple animations to run simultaneously on a single layer and in a single animation definition file (asd file), so that multiple segments can be used on a single layer, and each segment can start its animation from a different label at the same time.
+
+Segment 0 is a special segment, which is an animation that runs as soon as the image is loaded into the layer, and segment 0 cannot be specified with this tag or the animstop tag.
+
+## animstop (Stop an animation)
+*Not implemented*
+|===
+|Attribute|Must|Value|Description
+
+|layer|yes|"base" or integer of equal or more than 0|Specify the layer to stop the animation.
+If "base" is specified, it represents the background layer, and if an integer greater than or equal to 0 is specified, it represents the corresponding foreground layer. The specified layer must have animation information loaded on it.
+|page|no|"back" or "fore"|Specifies whether to target the fore-page or the back-page. If omitted, it is assumed to be the fore page.
+|seg|yes|integer of equal or more than 1|Stops the animation for the segment number specified by this attribute.
+Segment number 0 cannot be specified.
+|===
+
+Stops the animation of any segment.
+
+This tag does not wait for the animation to finish. To wait for the animation to finish, use the wa tag.
+
+If the animation is looping, it will not stop until it passes the home tag in the asd file.
+
+## autowc (Automated wait timer)
+*Not implemented*
+|===
+|Attribute|Must|Value|Description
+
+|enabled|no|true or false|Specify "true" to enable automatic waiting, or "false" to disable it.
+If omitted, the setting will not be changed.
+|ch|no|target character|Specifies the character to be automatically waited. After the specified character, the wait will be applied for the number of characters specified by the time attribute.
+If omitted, the setting will not be changed.
+|time|no|Wait timer dulation (in character unit)|Specifies the time for automatic waiting in units of characters.
+For each character specified in the ch attribute, you can specify a time separated by a comma.
+If only one time is specified, the time will be set for all characters specified in the ch tag.
+If this attribute is omitted, it is assumed that 4 is specified.
+|===
+
+This function allows you to put a wait for a specified number of characters after a specific character.
+
+After the character specified by the ch attribute is displayed, the time specified by the time attribute is added as a wait.
+
+Multiple characters can be specified with the ch tag, and the corresponding wait timer can be specified for each character with the time attribute.
+
+```kag3
+[autowc enabled=true ch="、。・" time="3,5,3"]
+; Set 3, 5, 3 wait timer for each of 、。・
+```
+
+## backlay (Copy layer information from fore-page to back-page)
+|===
+|Attribute|Must|Value|Description
+|layer|no|`base` `Integer of equal or more than 0` `message0` `message1`  `message`|Specify the target layer.
+If `base` is specified, it becomes the background layer.
+If `integer of equal or greater than 0 `is specified, it becomes a foreground layer.
+If `message0` or `message1` is specified, it becomes a message layer. If only `message` is specified, the current message layer specified by current tag will be used (even if the message layer on the back page is the target, it will be copied from the front page to the back page).
+If omitted, all layers' information will be copied to the back page.
+|===
+
+Copies the information of a specified layer or all layers from the fore-page to the back-page.
+
+The information copied is the same as that copied by the copylay tag.
+
+The trans tag replaces the image of the fore-page layer with the image of the back-page layer. Therefore, it is used to transfer the image to the back-page with this backlay tag before the transition, and then manipulate the layer on the back-page before the transition.
+
+## bgmopt (BGM Setting)

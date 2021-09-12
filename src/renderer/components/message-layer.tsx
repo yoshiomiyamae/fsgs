@@ -5,7 +5,7 @@ import {
   Size,
   MessageLayerConfig,
   Alignment,
-  ParameterCollection,
+  ParameterSet,
   LinkCollection,
   Rectangle,
   Link,
@@ -189,7 +189,7 @@ export class MessageLayer extends React.Component<
     this.lineHeight = this.getFontSize() + this.getRubySize() + this.getRubyOffset();
   };
 
-  setLink = async (params: ParameterCollection) => {
+  setLink = async (params: ParameterSet) => {
     const text: string = params.text;
     let rectangle: Rectangle | null = null;
     this.setText(text);
@@ -226,15 +226,17 @@ export class MessageLayer extends React.Component<
       position: { ...this.currentCaretPosition },
       size: { width, height },
     }
-    this.buttons.push({
+    const button = {
       button: 0,
       area: rectangle,
       params: args,
-    });
-    console.log(this.buttons);
+    };
+    this.buttons.push(button);
+    console.log('Buttons', this.buttons);
+    this.drawButton(button);
   };
 
-  setEdit = (params: ParameterCollection, onInput: (value: string) => void) => {
+  setEdit = (params: ParameterSet, onInput: (value: string) => void) => {
     const actualSize = this.getSize();
     if (!actualSize) {
       return;

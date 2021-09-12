@@ -3,14 +3,7 @@ import { render } from "react-dom";
 
 import Fsgs from "./containers/fsgs";
 
-import defaultConfig from "./configs/config";
-
 render(
-  <Fsgs
-    config={{
-      ...defaultConfig,
-      configVersion: "3.5",
-    }}
-  />,
+  <Fsgs />,
   document.getElementById("root")
 );

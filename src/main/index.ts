@@ -10,7 +10,7 @@ import {
 import * as path from "path";
 import * as url from "url";
 import { FagParser } from "./parser";
-import { promises } from "fs";
+import { readdirSync, existsSync, promises, Dirent } from "fs";
 import * as fileType from "file-type";
 import {
   GetImageArgs,
@@ -19,6 +19,7 @@ import {
   GetScriptArgs,
 } from "./model";
 import { IpcMainInvokeEvent, MessageBoxOptions, Rectangle } from "electron/main";
+import ts, { ModuleKind, ScriptTarget } from "typescript";
 
 let mainWindow: BrowserWindow | null;
 
@@ -44,6 +45,11 @@ const createWindow = () => {
 
   const menu = Menu.buildFromTemplate(menuTemplate);
   Menu.setApplicationMenu(menu);
+
+  if (process.env.NODE_ENV === 'development'){
+    mainWindow.maximize();
+    mainWindow.webContents.openDevTools();
+  }
 
   mainWindow.on("closed", () => {
     mainWindow = null;
@@ -135,18 +141,41 @@ ipcMain.handle(
       script: FagParser.parse(data),
       filePath: args.scriptName,
       startFrom: args.startFrom,
-      offset: args.offset,
     };
   }
 );
+
+const getFilePathes = (directoryPath: string) => readdirSync(directoryPath, {withFileTypes: true})
+  .filter(f => f.isFile())
+  .map(f => path.join(directoryPath, f.name))
+
+const searchImage = (fileName: string) => {
+  const dataDirectoryPath = path.join(getResourceDirectory(), "data");
+  const bgimagePath = path.join(dataDirectoryPath, 'bgimage');
+  const fgimagePath = path.join(dataDirectoryPath, 'fgimage');
+  const imagePath = path.join(dataDirectoryPath, 'image');
+  const imageFiles = [
+    ...(existsSync(bgimagePath) ? getFilePathes(bgimagePath) : []),
+    ...(existsSync(fgimagePath) ? getFilePathes(fgimagePath) : []),
+    ...(existsSync(imagePath) ? getFilePathes(imagePath) : []),
+  ]
+  const candidates = imageFiles.filter(f => f.endsWith(fileName));
+  if (candidates.length >= 1) {
+    return candidates[0];
+  }
+  return null;
+}
 
 ipcMain.handle(
   "get-image",
   async (event: IpcMainInvokeEvent, filePath: string) => {
     console.log(`get-image(${filePath}) called.`);
-    const data = await promises.readFile(
-      path.join(getResourceDirectory(), "data", filePath)
-    );
+    const fileName = path.basename(filePath);
+    let loadFilePath = fileName === filePath ? searchImage(fileName) : path.join(getResourceDirectory(), "data", filePath);
+    if(loadFilePath === null) {
+      return null;
+    }
+    const data = await promises.readFile(loadFilePath);
     const ft = await fileType.fromBuffer(data);
     if (!ft) {
       return null;
@@ -185,6 +214,17 @@ ipcMain.handle(
   }
 );
 
+ipcMain.handle("get-config", async (event: IpcMainInvokeEvent) => {
+  console.log(`get-config called.`);
+  const data = await promises.readFile(
+    path.join(getResourceDirectory(), "data", "system", "config.ts")
+  );
+  const script = data.toString();
+  const transpiledScript = ts.transpile(script, {target: ScriptTarget.ES2020, module: ModuleKind.CommonJS});
+  const config = eval(transpiledScript);
+  return config;
+});
+
 ipcMain.handle("window-get-bounds", async (event: IpcMainInvokeEvent) => {
   if (!mainWindow) {
     return <Rectangle>{ height: 0, width: 0, x: 0, y: 0 };
@@ -222,12 +262,10 @@ ipcMain.handle("window-get-menu-bar-visibility", async (event: IpcMainInvokeEven
   }
   return mainWindow.isMenuBarVisible();
 });
-ipcMain.handle("window-dialog-show-message-box", async (event: IpcMainInvokeEvent, options: MessageBoxOptions) => {
-  return dialog.showMessageBox(options);
-});
+ipcMain.handle("window-dialog-show-message-box", async (event: IpcMainInvokeEvent, options: MessageBoxOptions) => dialog.showMessageBox(options));
 ipcMain.handle("window-set-title", (event: IpcMainInvokeEvent, title: string) => {
   if (!mainWindow) {
     return;
   }
   mainWindow.setTitle(title);
-})
+});
