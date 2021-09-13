@@ -8,32 +8,32 @@ export interface ImageLayerProps extends LayerProps {
 }
 
 export class ImageLayer extends Layer<ImageLayerProps> {
-  private frameCount: number;
-  private previousFrameTime: number;
+  private m_frameCount: number;
+  private m_previousFrameTime: number;
 
   constructor(props: ImageLayerProps) {
     super(props);
-    this.frameCount = 0;
-    this.previousFrameTime = Date.now();
+    this.m_frameCount = 0;
+    this.m_previousFrameTime = Date.now();
   }
 
   calculateFps = () => {
-    this.frameCount++;
+    this.m_frameCount++;
     const now = Date.now();
-    if (now - this.previousFrameTime < 1000) {
+    if (now - this.m_previousFrameTime < 1000) {
       return null;
     }
-    const frameRate = (this.frameCount * 1000) / (now - this.previousFrameTime);
-    this.previousFrameTime = now;
-    this.frameCount = 0;
+    const frameRate = (this.m_frameCount * 1000) / (now - this.m_previousFrameTime);
+    this.m_previousFrameTime = now;
+    this.m_frameCount = 0;
     return Math.round(frameRate);
   };
 
   showFps = () => {
-    if (!this.dom) {
+    if (!this.m_dom) {
       return;
     }
-    const context = this.dom.getContext("2d");
+    const context = this.m_dom.getContext("2d");
     if (!context || !this.props.showFrameRate) {
       return;
     }
@@ -53,17 +53,17 @@ export class ImageLayer extends Layer<ImageLayerProps> {
   };
 
   update = async () => {
-    if (this.dom) {
+    if (this.m_dom) {
       const clientWidth = document.body.clientWidth;
       const clientHeight = document.body.clientHeight;
       const ratio = this.props.height / this.props.width;
 
       if (ratio < clientHeight / clientWidth) {
-        this.dom.style.height = "";
-        this.dom.style.width = `${clientWidth}px`;
+        this.m_dom.style.height = "";
+        this.m_dom.style.width = `${clientWidth}px`;
       } else {
-        this.dom.style.width = "";
-        this.dom.style.height = `${clientHeight}px`;
+        this.m_dom.style.width = "";
+        this.m_dom.style.height = `${clientHeight}px`;
       }
       process.env.NODE_ENV === 'development' && this.showFps();
     }
@@ -72,14 +72,14 @@ export class ImageLayer extends Layer<ImageLayerProps> {
   setImage = (image: HTMLImageElement, page: LayerPages) => {
     switch (page) {
       case LayerPages.Back: {
-        this.backImage = image;
+        this.m_backImage = image;
         break;
       }
       case LayerPages.Fore:
       default: {
-        this.foreImage = image;
-        if (this.dom) {
-          const context = this.dom.getContext("2d");
+        this.m_foreImage = image;
+        if (this.m_dom) {
+          const context = this.m_dom.getContext("2d");
           context?.drawImage(image, 0, 0);
         }
         break;

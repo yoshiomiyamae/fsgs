@@ -10,26 +10,71 @@ export interface LayerProps {
 }
 
 export abstract class Layer<T extends LayerProps> extends React.Component<T> {
-  protected dom: HTMLCanvasElement | null;
-  protected bufferCanvas: HTMLCanvasElement;
-  protected foreImage: HTMLImageElement | null;
-  protected backImage: HTMLImageElement | null;
-  protected transitionWorking: boolean;
-  protected visible: boolean;
-  protected left: number;
-  protected top: number;
+  protected m_dom: HTMLCanvasElement | null;
+  protected m_bufferCanvas: HTMLCanvasElement;
+  protected m_foreImage: HTMLImageElement | null;
+  protected m_backImage: HTMLImageElement | null;
+  protected m_transitionWorking: boolean;
+  protected m_visible: boolean;
+  protected m_left: number;
+  protected m_top: number;
 
   constructor(props: T) {
     super(props);
-    this.dom = null;
-    this.bufferCanvas = document.createElement("canvas");
-    this.foreImage = null;
-    this.backImage = null;
-    this.transitionWorking = false;
-    this.visible = props.visible;
-    this.left = 0;
-    this.top = 0;
+    this.m_dom = null;
+    this.m_bufferCanvas = document.createElement("canvas");
+    this.m_foreImage = null;
+    this.m_backImage = null;
+    this.m_transitionWorking = false;
+    this.m_visible = props.visible;
+    this.m_left = 0;
+    this.m_top = 0;
   }
+
+  set visible (visible: boolean) {
+    this.m_visible = visible;
+    if (this.m_dom) {
+      this.m_dom.style.display = visible ? "inherit" : "none";
+    }
+  };
+  get visible () {
+    return this.m_visible;
+  };
+
+  get transitionWorking () {
+    return this.m_transitionWorking;
+  };
+
+  get size () {
+    if (this.m_dom) {
+      return {
+        width: this.m_dom.offsetWidth,
+        height: this.m_dom.offsetHeight,
+      } as Size;
+    } else {
+      return null;
+    }
+  };
+
+  set left (left: number) {
+    this.m_left = left;
+    if (this.m_dom) {
+      this.m_dom.style.left = `${left}px`;
+    }
+  };
+
+  set top (top: number) {
+    this.m_top = top;
+    if (this.m_dom) {
+      this.m_dom.style.top = `${top}px`;
+    }
+  };
+
+  set opacity (opacity: number) {
+    if (this.m_dom) {
+      this.m_dom.style.opacity = `${opacity}`;
+    }
+  };
 
   componentDidMount() {
     this.setState({
@@ -38,18 +83,18 @@ export abstract class Layer<T extends LayerProps> extends React.Component<T> {
   }
 
   universalTransition = async (time: number, setting: TransitionSetting) => {
-    if (!this.dom) {
+    if (!this.m_dom) {
       return;
     }
-    const context = this.dom.getContext("2d");
-    this.bufferCanvas.width = this.dom.width;
-    this.bufferCanvas.height = this.dom.height;
-    const buffer = this.bufferCanvas.getContext("2d");
+    const context = this.m_dom.getContext("2d");
+    this.m_bufferCanvas.width = this.m_dom.width;
+    this.m_bufferCanvas.height = this.m_dom.height;
+    const buffer = this.m_bufferCanvas.getContext("2d");
     if (
       !buffer ||
       !context ||
-      !this.backImage ||
-      !this.foreImage ||
+      !this.m_backImage ||
+      !this.m_foreImage ||
       !setting.rule
     ) {
       return;
@@ -59,28 +104,28 @@ export abstract class Layer<T extends LayerProps> extends React.Component<T> {
       setting.rule,
       0,
       0,
-      this.backImage.width,
-      this.backImage.height
+      this.m_backImage.width,
+      this.m_backImage.height
     );
     const ruleData = buffer.getImageData(
       0,
       0,
-      this.backImage.width,
-      this.backImage.height
+      this.m_backImage.width,
+      this.m_backImage.height
     );
-    buffer.drawImage(this.backImage, 0, 0);
+    buffer.drawImage(this.m_backImage, 0, 0);
     const backData = buffer.getImageData(
       0,
       0,
-      this.backImage.width,
-      this.backImage.height
+      this.m_backImage.width,
+      this.m_backImage.height
     );
-    buffer.drawImage(this.foreImage, 0, 0);
+    buffer.drawImage(this.m_foreImage, 0, 0);
     const foreData = buffer.getImageData(
       0,
       0,
-      this.foreImage.width,
-      this.foreImage.height
+      this.m_foreImage.width,
+      this.m_foreImage.height
     );
     const vague = setting.vague || 5;
     for (let i = -vague; i < 0x100; i += 5) {
@@ -111,14 +156,14 @@ export abstract class Layer<T extends LayerProps> extends React.Component<T> {
   };
 
   scrollTransition = async (time: number, setting: TransitionSetting) => {
-    if (!this.dom) {
+    if (!this.m_dom) {
       return;
     }
-    const context = this.dom.getContext("2d");
-    this.bufferCanvas.width = this.dom.width;
-    this.bufferCanvas.height = this.dom.height;
-    const buffer = this.bufferCanvas.getContext("2d");
-    if (!buffer || !context || !this.backImage || !this.foreImage) {
+    const context = this.m_dom.getContext("2d");
+    this.m_bufferCanvas.width = this.m_dom.width;
+    this.m_bufferCanvas.height = this.m_dom.height;
+    const buffer = this.m_bufferCanvas.getContext("2d");
+    if (!buffer || !context || !this.m_backImage || !this.m_foreImage) {
       return;
     }
     const from = setting.from || Direction.Left;
@@ -126,35 +171,35 @@ export abstract class Layer<T extends LayerProps> extends React.Component<T> {
     switch (from) {
       case Direction.Left:
       case Direction.Right: {
-        if (!this.backImage || !this.foreImage) {
+        if (!this.m_backImage || !this.m_foreImage) {
           return;
         }
-        for (let x = 0; x <= this.backImage.width; x += 5) {
-          await sleep(time / this.backImage.width);
+        for (let x = 0; x <= this.m_backImage.width; x += 5) {
+          await sleep(time / this.m_backImage.width);
           switch (stay) {
             case StayValue.StayFore: {
               const x2 =
                 from === Direction.Left
-                  ? x - this.backImage.width
-                  : this.backImage.width - x;
-              buffer.drawImage(this.foreImage, 0, 0);
-              buffer.drawImage(this.backImage, x2, 0);
+                  ? x - this.m_backImage.width
+                  : this.m_backImage.width - x;
+              buffer.drawImage(this.m_foreImage, 0, 0);
+              buffer.drawImage(this.m_backImage, x2, 0);
               break;
             }
             case StayValue.StayBack: {
               const x2 = from === Direction.Left ? -x : x;
-              buffer.drawImage(this.backImage, 0, 0);
-              buffer.drawImage(this.foreImage, x2, 0);
+              buffer.drawImage(this.m_backImage, 0, 0);
+              buffer.drawImage(this.m_foreImage, x2, 0);
               break;
             }
             case StayValue.NoStay: {
               const x2 = from === Direction.Left ? x : -x;
               const x3 =
                 from === Direction.Left
-                  ? x - this.backImage.width
-                  : this.backImage.width - x;
-              buffer.drawImage(this.foreImage, x2, 0);
-              buffer.drawImage(this.backImage, x3, 0);
+                  ? x - this.m_backImage.width
+                  : this.m_backImage.width - x;
+              buffer.drawImage(this.m_foreImage, x2, 0);
+              buffer.drawImage(this.m_backImage, x3, 0);
               break;
             }
           }
@@ -162,8 +207,8 @@ export abstract class Layer<T extends LayerProps> extends React.Component<T> {
             buffer.getImageData(
               0,
               0,
-              this.bufferCanvas.width,
-              this.bufferCanvas.height
+              this.m_bufferCanvas.width,
+              this.m_bufferCanvas.height
             ),
             0,
             0
@@ -173,35 +218,35 @@ export abstract class Layer<T extends LayerProps> extends React.Component<T> {
       }
       case Direction.Top:
       case Direction.Bottom: {
-        if (!this.backImage || !this.foreImage) {
+        if (!this.m_backImage || !this.m_foreImage) {
           return;
         }
-        for (let y = 0; y <= this.backImage.height; y += 5) {
-          await sleep(time / this.backImage.height);
+        for (let y = 0; y <= this.m_backImage.height; y += 5) {
+          await sleep(time / this.m_backImage.height);
           switch (stay) {
             case StayValue.StayFore: {
               const y2 =
                 from === Direction.Top
-                  ? y - this.backImage.height
-                  : this.backImage.height - y;
-              buffer.drawImage(this.foreImage, 0, 0);
-              buffer.drawImage(this.backImage, 0, y2);
+                  ? y - this.m_backImage.height
+                  : this.m_backImage.height - y;
+              buffer.drawImage(this.m_foreImage, 0, 0);
+              buffer.drawImage(this.m_backImage, 0, y2);
               break;
             }
             case StayValue.StayBack: {
               const y2 = from === Direction.Top ? -y : y;
-              buffer.drawImage(this.backImage, 0, 0);
-              buffer.drawImage(this.foreImage, 0, y2);
+              buffer.drawImage(this.m_backImage, 0, 0);
+              buffer.drawImage(this.m_foreImage, 0, y2);
               break;
             }
             case StayValue.NoStay: {
               const y2 = from === Direction.Top ? y : -y;
               const y3 =
                 from === Direction.Top
-                  ? y - this.backImage.height
-                  : this.backImage.height - y;
-              buffer.drawImage(this.foreImage, 0, y2);
-              buffer.drawImage(this.backImage, 0, y3);
+                  ? y - this.m_backImage.height
+                  : this.m_backImage.height - y;
+              buffer.drawImage(this.m_foreImage, 0, y2);
+              buffer.drawImage(this.m_backImage, 0, y3);
               break;
             }
           }
@@ -209,8 +254,8 @@ export abstract class Layer<T extends LayerProps> extends React.Component<T> {
             buffer.getImageData(
               0,
               0,
-              this.bufferCanvas.width,
-              this.bufferCanvas.height
+              this.m_bufferCanvas.width,
+              this.m_bufferCanvas.height
             ),
             0,
             0
@@ -222,32 +267,32 @@ export abstract class Layer<T extends LayerProps> extends React.Component<T> {
   };
 
   crossFadeTransition = async (time: number) => {
-    if (!this.dom) {
+    if (!this.m_dom) {
       return;
     }
-    const context = this.dom.getContext("2d");
-    this.bufferCanvas.width = this.dom.width;
-    this.bufferCanvas.height = this.dom.height;
-    const buffer = this.bufferCanvas.getContext("2d");
-    if (!buffer || !context || !(this.backImage || this.foreImage)) {
+    const context = this.m_dom.getContext("2d");
+    this.m_bufferCanvas.width = this.m_dom.width;
+    this.m_bufferCanvas.height = this.m_dom.height;
+    const buffer = this.m_bufferCanvas.getContext("2d");
+    if (!buffer || !context || !(this.m_backImage || this.m_foreImage)) {
       return;
     }
     for (let i = 0; i < 0x80; i += 2) {
       await sleep(time / 0x80);
-      if (this.backImage) {
+      if (this.m_backImage) {
         buffer.globalAlpha = i / 0x80;
-        buffer.drawImage(this.backImage, 0, 0);
+        buffer.drawImage(this.m_backImage, 0, 0);
       }
-      if (this.foreImage) {
+      if (this.m_foreImage) {
         buffer.globalAlpha = 1 - buffer.globalAlpha;
-        buffer.drawImage(this.foreImage, 0, 0);
+        buffer.drawImage(this.m_foreImage, 0, 0);
       }
       context.putImageData(
         buffer.getImageData(
           0,
           0,
-          this.bufferCanvas.width,
-          this.bufferCanvas.height
+          this.m_bufferCanvas.width,
+          this.m_bufferCanvas.height
         ),
         0,
         0
@@ -260,7 +305,7 @@ export abstract class Layer<T extends LayerProps> extends React.Component<T> {
     time: number,
     setting: TransitionSetting
   ) => {
-    this.transitionWorking = true;
+    this.m_transitionWorking = true;
     switch (method) {
       case "universal": {
         await this.universalTransition(time, setting);
@@ -275,72 +320,26 @@ export abstract class Layer<T extends LayerProps> extends React.Component<T> {
         break;
       }
     }
-    this.foreImage = this.backImage;
-    this.transitionWorking = false;
-  };
-
-  setVisible = (visible: boolean) => {
-    this.visible = visible;
-    if (this.dom) {
-      this.dom.style.display = visible ? "inherit" : "none";
-    }
-  };
-  
-  getVisible = () => {
-    return this.visible;
-  };
-
-  getTransitionWorking = () => {
-    return this.transitionWorking;
-  };
-
-  getSize = () => {
-    if (this.dom) {
-      return {
-        width: this.dom.offsetWidth,
-        height: this.dom.offsetHeight,
-      } as Size;
-    } else {
-      return null;
-    }
-  };
-
-  setLeft = (left: number) => {
-    this.left = left;
-    if (this.dom) {
-      this.dom.style.left = `${left}px`;
-    }
-  };
-
-  setTop = (top: number) => {
-    this.top = top;
-    if (this.dom) {
-      this.dom.style.top = `${top}px`;
-    }
+    this.m_foreImage = this.m_backImage;
+    this.m_transitionWorking = false;
   };
 
   backLay = () => {
-    if (this.foreImage) {
-      this.backImage = this.foreImage.cloneNode(true) as HTMLImageElement;
-    }
-  };
-
-  setOpacity = (opacity: number) => {
-    if (this.dom) {
-      this.dom.style.opacity = `${opacity}`;
+    if (this.m_foreImage) {
+      this.m_backImage = this.m_foreImage.cloneNode(true) as HTMLImageElement;
     }
   };
 
   copyForeToBack = () => {
-    this.backImage = this.foreImage;
+    this.m_backImage = this.m_foreImage;
   };
 
   clear = () => {
-    if (!this.dom) {
+    if (!this.m_dom) {
       return;
     }
-    const context = this.dom.getContext("2d");
-    context?.clearRect(0, 0, this.dom.width, this.dom.height);
+    const context = this.m_dom.getContext("2d");
+    context?.clearRect(0, 0, this.m_dom.width, this.m_dom.height);
   };
 
   render() {
@@ -350,13 +349,13 @@ export abstract class Layer<T extends LayerProps> extends React.Component<T> {
     return (
       <canvas
         ref={(e) => {
-          this.dom = e;
+          this.m_dom = e;
         }}
         style={{
           position: "absolute",
-          left: this.left,
-          top: this.top,
-          display: this.visible ? "inherit" : "none",
+          left: this.m_left,
+          top: this.m_top,
+          display: this.m_visible ? "inherit" : "none",
         }}
         width={this.props.width}
         height={this.props.height}

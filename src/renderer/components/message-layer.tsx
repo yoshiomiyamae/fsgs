@@ -55,175 +55,447 @@ export class MessageLayer extends React.Component<
   MessageLayerProps,
   MessageLayerProps
 > {
-  private dom: HTMLDivElement | null;
-  private fore: MessageLayerElementSet;
-  private back: MessageLayerElementSet;
-  private remainingText: string;
-  private config: MessageLayerConfig;
-  private currentCaretPosition: Position;
-  private speed?: number;
-  private processing: boolean;
-  private visible: boolean;
-  private clickWaiting: boolean;
-  private defaultFont: Font;
-  private font: Font;
-  private lineHeight: number;
-  private lineWidths: number[];
-  private currentLine: number;
-  private textAlignment: Alignment;
-  private afterSetAlignment: boolean;
-  private links: LinkCollection;
-  private buttons: ButtonCollection;
-  private cursorPosition: Position | null;
-  private noWait: boolean;
-  private ruby: string;
-  private vertical: boolean;
-  private ml: number;
-  private mt: number;
-  private mw: number;
-  private mh: number;
-  private marginL: number;
-  private marginT: number;
-  private marginR: number;
-  private marginB: number;
-  private frame: HTMLImageElement | null;
-  private shadow: boolean;
-  private shadowColor: number | null;
-  private currentPage: LayerPages;
-  private transitionWorking: boolean;
-  private isCharacterRotated: boolean;
-  private rotationAnchor: Position | undefined;
+  private m_dom: HTMLDivElement | null;
+  private m_fore: MessageLayerElementSet;
+  private m_back: MessageLayerElementSet;
+  private m_remainingText: string;
+  private m_config: MessageLayerConfig;
+  private m_currentCaretPosition: Position;
+  private m_speed?: number;
+  private m_processing: boolean;
+  private m_visible: boolean;
+  private m_clickWaiting: boolean;
+  private m_defaultFont: Font;
+  private m_font: Font;
+  private m_lineWidths: number[];
+  private m_textAlignment: Alignment;
+  private m_afterSetAlignment: boolean;
+  private m_links: LinkCollection;
+  private m_buttons: ButtonCollection;
+  private m_cursorPosition: Position | null;
+  private m_noWait: boolean;
+  private m_ruby: string;
+  private m_vertical: boolean;
+  private m_ml: number;
+  private m_mt: number;
+  private m_mw: number;
+  private m_mh: number;
+  private m_marginL: number;
+  private m_marginT: number;
+  private m_marginR: number;
+  private m_marginB: number;
+  private m_frame: HTMLImageElement | null;
+  private m_shadow: boolean;
+  private m_shadowColor: number | null;
+  private m_transitionWorking: boolean;
+  private m_isCharacterRotated: boolean;
+  private m_rotationAnchor: Position | undefined;
 
   constructor(props: MessageLayerProps) {
     super(props);
-    this.dom = null;
-    this.fore = {
+    this.m_dom = null;
+    this.m_fore = {
       dom: null,
       base: null,
       highlight: null,
       form: null,
     };
-    this.back = {
+    this.m_back = {
       dom: null,
       base: null,
       highlight: null,
       form: null,
     };
-    this.remainingText = "";
-    this.speed = props.speed;
-    this.processing = false;
-    this.visible = props.visible;
-    this.clickWaiting = false;
-    this.config = props.config;
-    this.defaultFont = { ...this.config.defaultFont };
-    this.font = { ...this.config.defaultFont };
-    this.lineHeight = this.getFontSize() + this.getRubySize() + this.getRubyOffset();
-    this.lineWidths = [];
-    this.currentLine = 0;
-    this.textAlignment = Alignment.Default;
-    this.ml = this.getML();
-    this.mt = this.getMT();
-    this.mw = this.getMW();
-    this.mh = this.getMH();
-    this.marginL = this.getMarginL();
-    this.marginT = this.getMarginT();
-    this.marginR = this.getMarginR();
-    this.marginB = this.getMarginB();
-    this.currentCaretPosition = {
-      x: this.getMarginL() + this.getML(),
-      y: this.getMarginT() + this.getMT(),
+    this.m_remainingText = "";
+    this.m_speed = props.speed;
+    this.m_processing = false;
+    this.m_visible = props.visible;
+    this.m_clickWaiting = false;
+    this.m_config = props.config;
+    this.m_defaultFont = { ...this.m_config.defaultFont };
+    this.m_font = { ...this.m_config.defaultFont };
+    this.m_lineWidths = [];
+    this.m_textAlignment = Alignment.Default;
+    this.m_ml = this.ml;
+    this.m_mt = this.mt;
+    this.m_mw = this.mw;
+    this.m_mh = this.mh;
+    this.m_marginL = this.marginL;
+    this.m_marginT = this.marginT;
+    this.m_marginR = this.marginR;
+    this.m_marginB = this.marginB;
+    this.m_currentCaretPosition = {
+      x: this.marginL + this.ml,
+      y: this.marginT + this.mt,
     };
-    this.afterSetAlignment = false;
-    this.links = [];
-    this.buttons = [];
-    this.cursorPosition = null;
-    this.noWait = false;
-    this.ruby = "";
-    this.vertical = this.getVertical();
-    this.frame = null;
-    this.shadow = this.getShadow();
-    this.shadowColor = this.getShadowColor();
-    this.currentPage = LayerPages.Fore;
-    this.transitionWorking = false;
-    this.isCharacterRotated = false;
-    this.rotationAnchor = {
+    this.m_afterSetAlignment = false;
+    this.m_links = [];
+    this.m_buttons = [];
+    this.m_cursorPosition = null;
+    this.m_noWait = false;
+    this.m_ruby = "";
+    this.m_vertical = this.vertical;
+    this.m_frame = null;
+    this.m_shadow = this.shadow;
+    this.m_shadowColor = this.shadowColor;
+    this.m_transitionWorking = false;
+    this.m_isCharacterRotated = false;
+    this.m_rotationAnchor = {
       x: 0,
       y: 0,
     }
   }
 
-  changeFont = (font: Font) => {
-    this.config.defaultFont = font;
-  };
-
-  setText = (text: string) => {
-    const context = this.fore.base?.getContext("2d");
-    const lineWidth = this.getMW() - this.getMarginR();
+  set text(text: string) {
+    const context = this.m_fore.base?.getContext("2d");
+    const lineWidth = this.mw - this.marginR;
     let textWidth = context?.measureText(text).width;
 
     if (textWidth) {
-      this.lineWidths = [];
+      this.m_lineWidths = [];
       for (; textWidth >= lineWidth; textWidth -= lineWidth) {
-        this.lineWidths.push(lineWidth);
+        this.m_lineWidths.push(lineWidth);
       }
       if (textWidth !== 0) {
-        this.lineWidths.push(textWidth);
+        this.m_lineWidths.push(textWidth);
       }
     }
 
-    this.remainingText = text;
-    this.currentLine = 0;
-    if (!this.afterSetAlignment) {
+    this.m_remainingText = text;
+    if (!this.m_afterSetAlignment) {
       return;
     }
-    if (this.vertical) {
-      this.currentCaretPosition.y = this.calculateTopMargin();
+    if (this.m_vertical) {
+      this.m_currentCaretPosition.y = this.calculateTopMargin();
     } else {
-      this.currentCaretPosition.x = this.calculateLeftMargin();
+      this.m_currentCaretPosition.x = this.calculateLeftMargin();
     }
-    this.afterSetAlignment = false;
+    this.m_afterSetAlignment = false;
   };
 
-  setRuby = (text: string) => {
-    this.ruby = text;
-    this.lineHeight = this.getFontSize() + this.getRubySize() + this.getRubyOffset();
+  get lineHeight() {
+    return this.fontSize + this.rubySize + this.rubyOffset;
+  }
+
+  set ruby(text: string) {
+    this.m_ruby = text;
   };
 
-  setLink = async (params: ParameterSet) => {
+  set fontColor(color: string | number) {
+    if (typeof color === "string") {
+      if (color === "default") {
+        this.resetFont();
+      } else {
+        this.m_font = {
+          ...this.m_font,
+          color: nullFallback(colorStringToInteger(color), 0xffffff),
+        };
+      }
+    } else if (typeof color === "number") {
+      this.m_font = {
+        ...this.m_font,
+        color,
+      };
+    }
+  };
+
+  set fontSize(size: string | number) {
+    this.m_font = {
+      ...this.m_font,
+      size: +size,
+    };
+  };
+
+  set fontEdge(edge: string | boolean) {
+    this.m_font = {
+      ...this.m_font,
+      edge: ("" + edge).toLowerCase() === "true",
+    };
+  };
+
+  set fontEdgeColor(edgeColor: string | number) {
+    if (typeof edgeColor === "string") {
+      this.m_font = {
+        ...this.m_font,
+        edgeColor: nullFallback(colorStringToInteger(edgeColor), 0xffffff),
+      };
+    } else if (typeof edgeColor === "number") {
+      this.m_font = {
+        ...this.m_font,
+        edgeColor: edgeColor,
+      };
+    }
+  };
+
+  set fontShadow(shadow: string | boolean) {
+    this.m_font = {
+      ...this.m_font,
+      shadow: ("" + shadow).toLowerCase() === "true",
+    };
+  };
+
+  set visible(visible: boolean) {
+    this.m_visible = visible;
+    if (this.m_dom) {
+      this.m_dom.style.display = visible ? "inherit" : "none";
+    }
+  };
+
+  set alignment(alignment: Alignment | string) {
+    this.m_textAlignment = alignment as Alignment;
+    this.m_afterSetAlignment = true;
+  };
+
+  set clickWaiting(clickWaiting: boolean) {
+    this.m_clickWaiting = clickWaiting;
+  };
+
+  set speed(speed: number) {
+    this.m_speed = speed;
+  };
+
+  set noWait(noWait: boolean) {
+    this.m_noWait = noWait;
+  };
+
+  set vertical(vertical: boolean) {
+    console.log("%cVertical mode is under development", "color: orange");
+    this.m_vertical = vertical;
+    this.recalculateCurrentCaretPosition();
+  };
+
+  set left(left: number) {
+    this.m_ml = left;
+  };
+
+  set top(top: number) {
+    this.m_mt = top;
+  };
+
+  set marginL(marginL: number) {
+    this.m_marginL = marginL;
+  };
+
+  set marginT(marginT: number) {
+    this.m_marginT = marginT;
+  };
+
+  set marginR(marginR: number) {
+    this.m_marginR = marginR;
+  };
+
+  set marginB(marginB: number) {
+    this.m_marginB = marginB;
+  };
+
+  set frame(frame: HTMLImageElement) {
+    this.m_frame = frame;
+    this.m_mw = this.m_frame.naturalWidth;
+    this.m_mh = this.m_frame.naturalHeight;
+    this.clear();
+  };
+
+  set opacity(opacity: number) {
+    if (this.m_fore.base) {
+      this.m_fore.base.style.opacity = `${opacity}`;
+    }
+  };
+
+  set shadow(shadow: boolean) {
+    this.m_shadow = shadow;
+  };
+
+  set currentPage(page: LayerPages.Fore) {
+    if (this.m_fore.dom) {
+      this.m_fore.dom.style.display =
+        page === LayerPages.Fore ? "inherit" : "none";
+    }
+    if (this.m_back.dom) {
+      this.m_back.dom.style.display =
+        page === LayerPages.Fore ? "none" : "inherit";
+    }
+  };
+  get visible() {
+    return this.m_visible;
+  };
+
+  get transitionWorking() {
+    return this.m_transitionWorking;
+  };
+
+  get clickableAreaMouseIn(): ClickableAreaCollection | null {
+    if (!this.m_cursorPosition) {
+      return null;
+    }
+    const mouseInClickableAreas = [...this.m_links, ...this.m_buttons].filter(
+      (clickableArea) =>
+        this.m_cursorPosition &&
+        positionIsInRectangle(this.m_cursorPosition, clickableArea.area)
+    );
+    if (mouseInClickableAreas.length > 0) {
+      return mouseInClickableAreas;
+    } else {
+      return null;
+    }
+  };
+
+  get clickableAreaMouseNotIn(): ClickableAreaCollection | null {
+    if (!this.m_cursorPosition) {
+      return null;
+    }
+    const mouseNotInClickableAreas = [...this.m_links, ...this.m_buttons].filter(
+      (clickableArea) =>
+        !this.m_cursorPosition ||
+        !positionIsInRectangle(this.m_cursorPosition, clickableArea.area)
+    );
+    if (mouseNotInClickableAreas.length > 0) {
+      return mouseNotInClickableAreas;
+    } else {
+      return null;
+    }
+  };
+
+  set currentCaretPosition(position: Position) {
+    const newPosition: Position = {
+      x: position.x || this.m_currentCaretPosition.x,
+      y: position.y || this.m_currentCaretPosition.y,
+    }
+    this.m_currentCaretPosition = newPosition;
+  }
+
+  set cursorPosition(position: Position) {
+    const newPosition: Position = {
+      x: position.x || this.m_cursorPosition?.x || 0,
+      y: position.y || this.m_cursorPosition?.y || 0,
+    }
+    this.m_cursorPosition = newPosition;
+    const mouseInClickableAreas = this.clickableAreaMouseIn;
+    this.clearHighlight(this.m_back);
+    this.clearHighlight(this.m_fore);
+    if (mouseInClickableAreas) {
+      for (const clickableArea of mouseInClickableAreas) {
+        this.highlightArea(clickableArea);
+      }
+    }
+    const mouseNotInClickableAreas = this.clickableAreaMouseNotIn;
+    if (mouseNotInClickableAreas) {
+      for (const clickableArea of mouseNotInClickableAreas) {
+        if (isInstanceOfButton(clickableArea)) {
+          this.drawButton(clickableArea);
+        }
+      }
+    }
+  };
+
+  get size() {
+    if (!this.m_fore.base) {
+      return null;
+    }
+    return {
+      width: this.m_fore.base.offsetWidth,
+      height: this.m_fore.base.offsetHeight,
+    } as Size;
+  };
+
+  get position() {
+    if (!this.m_fore.base) {
+      return null;
+    }
+    return {
+      x: this.m_fore.base.offsetLeft,
+      y: this.m_fore.base.offsetTop,
+    } as Position;
+  };
+
+  private get lineSpacing() { return nullFallback(this.m_config.defaultLineSpacing, 6); }
+  private get pitch() { return nullFallback(this.m_config.defaultPitch, 0); }
+  get fontColor(): number {
+    return nullFallback(
+      this.m_font.color,
+      nullFallback(this.m_defaultFont.color, 0xffffff)
+    );
+  }
+  private get edgeColor() {
+    return nullFallback(
+      this.m_font.edgeColor,
+      nullFallback(this.m_defaultFont.edgeColor, 0xffffff)
+    );
+  }
+  private get ml() { return nullFallback(this.m_ml, nullFallback(this.m_config.ml, 16)); }
+  private get mt() { return nullFallback(this.m_mt, nullFallback(this.m_config.mt, 16)); }
+  private get mw() { return nullFallback(this.m_mw, nullFallback(this.m_config.mw, 608)); }
+  private get mh() { return nullFallback(this.m_mh, nullFallback(this.m_config.mh, 608)); }
+  get marginL() { return nullFallback(this.m_marginL, nullFallback(this.m_config.marginL, 8)); }
+  get marginT() { return nullFallback(this.m_marginT, nullFallback(this.m_config.marginT, 8)); }
+  get marginR() { return nullFallback(this.m_marginR, nullFallback(this.m_config.marginR, 8)); }
+  get marginB() { return nullFallback(this.m_marginB, nullFallback(this.m_config.marginB, 8)); }
+  get fontSize(): number { return nullFallback(this.m_font.size, nullFallback(this.m_defaultFont.size, 24)); }
+  private get fontItalic() {
+    return nullFallback(
+      this.m_font.italic,
+      nullFallback(this.m_defaultFont.italic, false)
+    );
+  }
+  private get fontBold() { return nullFallback(this.m_font.bold, nullFallback(this.m_defaultFont.bold, true)); }
+  private get font() {
+    return `${this.fontItalic ? "italic" : ""} ${this.fontBold ? "bold" : ""
+      } ${this.m_font.size}px '${this.m_font.face}'`;
+  }
+  private get rubySize() { return nullFallback(this.m_font.rubySize, nullFallback(this.m_defaultFont.rubyOffset, 0)); }
+  private get rubyOffset() { return nullFallback(this.m_font.rubyOffset, nullFallback(this.m_defaultFont.rubyOffset, 0)); }
+  private get frameColor() { return nullFallback(this.m_config.frameColor, 0x000000); }
+  private get frameOpacity() { return nullFallback(this.m_config.frameOpacity, 0x80); }
+  private getLinkColor = (linkColor?: number | null) =>
+    nullFallback(
+      linkColor,
+      nullFallback(this.m_config.defaultLinkColor, 0x000000)
+    );
+  get speed() { return nullFallback(this.m_speed, 30); }
+  get vertical() { return nullFallback(this.m_vertical, nullFallback(this.m_config.vertical, false)); }
+  private get defaultAlignment() { return this.m_vertical ? Alignment.Top : Alignment.Left; }
+  get shadow() { return nullFallback(this.m_shadow, nullFallback(this.m_font.shadow, true)); }
+  private get shadowColor() { return nullFallback(this.m_shadowColor, nullFallback(this.m_font.shadowColor, true)); }
+
+
+  changeFont = (font: Font) => {
+    this.m_config.defaultFont = font;
+  };
+
+  addLink = async (params: ParameterSet) => {
     const text: string = params.text;
     let rectangle: Rectangle | null = null;
-    this.setText(text);
-    for (let i = 0; i < this.remainingText.length; i++) {
-      const character = this.remainingText[i];
+    this.text = text;
+    for (let i = 0; i < this.m_remainingText.length; i++) {
+      const character = this.m_remainingText[i];
       const characterRectangle = await this.writeCharacter(character);
       if (characterRectangle) {
         rectangle = margeRectangle(rectangle, characterRectangle);
       }
     }
-    const context = this.fore.base?.getContext("2d");
-    this.remainingText = "";
+    const context = this.m_fore.base?.getContext("2d");
+    this.m_remainingText = "";
     if (!context || !rectangle) {
       return;
     }
-    this.links.push({
+    this.m_links.push({
       link: 0,
       area: rectangle,
       params,
     });
   };
 
-  setButton = async (args: SetButtonArgs) => {
-    if (!args.image){
+  addButton = async (args: SetButtonArgs) => {
+    if (!args.image) {
       return;
     }
-    if (!this.fore.highlight) {
+    if (!this.m_fore.highlight) {
       return;
     }
     const image = args.image as HTMLImageElement;
     const width = image.naturalWidth / 3;
     const height = image.naturalHeight;
     const rectangle: Rectangle = {
-      position: { ...this.currentCaretPosition },
+      position: { ...this.m_currentCaretPosition },
       size: { width, height },
     }
     const button = {
@@ -231,21 +503,21 @@ export class MessageLayer extends React.Component<
       area: rectangle,
       params: args,
     };
-    this.buttons.push(button);
-    console.log('Buttons', this.buttons);
+    this.m_buttons.push(button);
+    console.log('Buttons', this.m_buttons);
     this.drawButton(button);
   };
 
-  setEdit = (params: ParameterSet, onInput: (value: string) => void) => {
-    const actualSize = this.getSize();
+  addEdit = (params: ParameterSet, onInput: (value: string) => void) => {
+    const actualSize = this.size;
     if (!actualSize) {
       return;
     }
     const ratio = this.props.width / actualSize.width;
 
     const input = document.createElement("input");
-    this.fore.form?.appendChild(input);
-    const fontSize = this.getFontSize();
+    this.m_fore.form?.appendChild(input);
+    const fontSize = this.fontSize;
     input.style.position = "absolute";
     input.style.fontSize = `${fontSize}px`;
     input.style.transformOrigin = "left top";
@@ -276,246 +548,43 @@ export class MessageLayer extends React.Component<
     const inputStyle = window.getComputedStyle(input);
     const height = parseInt(nullFallback(inputStyle.height, "0"));
     const y =
-      this.currentCaretPosition.y +
+      this.m_currentCaretPosition.y +
       this.lineHeight -
       height -
-      this.getLineSpacing() / 5;
-    const x = this.currentCaretPosition.x;
+      this.lineSpacing / 5;
+    const x = this.m_currentCaretPosition.x;
     input.style.borderRadius = `${height * 0.2}px`;
     input.dataset["x"] = `${x}`;
     input.dataset["y"] = `${y}`;
     input.oninput = () => onInput(input.value);
-    this.currentCaretPosition.x += input.offsetWidth + this.getPitch();
-  };
-
-  setFontColor = (color: string | number) => {
-    if (typeof color === "string") {
-      if (color === "default") {
-        this.resetFont();
-      } else {
-        this.font = {
-          ...this.font,
-          color: nullFallback(colorStringToInteger(color), 0xffffff),
-        };
-      }
-    } else if (typeof color === "number") {
-      this.font = {
-        ...this.font,
-        color,
-      };
-    }
-  };
-
-  setFontSize = (size: string | number) => {
-    this.font = {
-      ...this.font,
-      size: +size,
-    };
-    this.lineHeight = +size + this.getRubySize() + this.getRubyOffset();
-  };
-
-  setFontEdge = (edge: string | boolean) => {
-    this.font = {
-      ...this.font,
-      edge: ("" + edge).toLowerCase() === "true",
-    };
-  };
-
-  setFontEdgeColor = (edgeColor: string | number) => {
-    if (typeof edgeColor === "string") {
-      this.font = {
-        ...this.font,
-        edgeColor: nullFallback(colorStringToInteger(edgeColor), 0xffffff),
-      };
-    } else if (typeof edgeColor === "number") {
-      this.font = {
-        ...this.font,
-        edgeColor: edgeColor,
-      };
-    }
-  };
-
-  setFontShadow = (shadow: string | boolean) => {
-    this.font = {
-      ...this.font,
-      shadow: ("" + shadow).toLowerCase() === "true",
-    };
+    this.m_currentCaretPosition.x += input.offsetWidth + this.pitch;
   };
 
   resetFont = () => {
-    this.font = { ...this.defaultFont };
+    this.m_font = { ...this.m_defaultFont };
   };
 
   resetAlignment = () => {
-    this.textAlignment = Alignment.Default;
-    this.afterSetAlignment = true;
-  };
-
-  setVisible = (visible: boolean) => {
-    this.visible = visible;
-    if (this.dom) {
-      this.dom.style.display = visible ? "inherit" : "none";
-    }
-  };
-
-  setAlignment = (alignment: Alignment | string) => {
-    this.textAlignment = alignment as Alignment;
-    this.afterSetAlignment = true;
-  };
-
-  setClickWaiting = (clickWaiting: boolean) => {
-    this.clickWaiting = clickWaiting;
-  };
-
-  setSpeed = (speed: number) => {
-    this.speed = speed;
-  };
-
-  setNoWait = (noWait: boolean) => {
-    this.noWait = noWait;
-  };
-
-  setVertical = (vertical: boolean) => {
-    console.log("%cVertical mode is under development", "color: orange");
-    this.vertical = vertical;
-    this.recalculateCurrentCaretPosition();
+    this.m_textAlignment = Alignment.Default;
+    this.m_afterSetAlignment = true;
   };
 
   recalculateCurrentCaretPosition = () => {
-    if (this.vertical) {
-      this.currentCaretPosition = {
-        x: this.getMW() + this.getML() - this.getMarginL() - this.getFontSize(),
-        y: this.getMarginT() + this.getMT(),
+    if (this.m_vertical) {
+      this.m_currentCaretPosition = {
+        x: this.mw + this.ml - this.marginL - this.fontSize,
+        y: this.marginT + this.mt,
       };
     } else {
-      this.currentCaretPosition = {
-        x: this.getMarginL() + this.getML(),
-        y: this.getMarginT() + this.getMT(),
+      this.m_currentCaretPosition = {
+        x: this.marginL + this.ml,
+        y: this.marginT + this.mt,
       };
     }
-  };
-
-  setLeft = (left: number) => {
-    this.ml = left;
-  };
-
-  setTop = (top: number) => {
-    this.mt = top;
-  };
-
-  setMarginL = (marginL: number) => {
-    this.marginL = marginL;
-  };
-
-  setMarginT = (marginT: number) => {
-    this.marginT = marginT;
-  };
-
-  setMarginR = (marginR: number) => {
-    this.marginR = marginR;
-  };
-
-  setMarginB = (marginB: number) => {
-    this.marginB = marginB;
-  };
-
-  setFrame = (frame: HTMLImageElement) => {
-    this.frame = frame;
-    this.mw = this.frame.naturalWidth;
-    this.mh = this.frame.naturalHeight;
-    this.clear();
-  };
-
-  setOpacity = (opacity: number) => {
-    if (this.fore.base) {
-      this.fore.base.style.opacity = `${opacity}`;
-    }
-  };
-
-  setShadow = (shadow: boolean) => {
-    this.shadow = shadow;
-  };
-
-  setCurrentPage = (page: LayerPages.Fore) => {
-    this.currentPage = page;
-    if (this.fore.dom) {
-      this.fore.dom.style.display =
-        page === LayerPages.Fore ? "inherit" : "none";
-    }
-    if (this.back.dom) {
-      this.back.dom.style.display =
-        page === LayerPages.Fore ? "none" : "inherit";
-    }
-  };
-
-  private getLineSpacing = () =>
-    nullFallback(this.config.defaultLineSpacing, 6);
-  private getPitch = () => nullFallback(this.config.defaultPitch, 0);
-  private getFontColor = () =>
-    nullFallback(
-      this.font.color,
-      nullFallback(this.defaultFont.color, 0xffffff)
-    );
-  private getEdgeColor = () =>
-    nullFallback(
-      this.font.edgeColor,
-      nullFallback(this.defaultFont.edgeColor, 0xffffff)
-    );
-  private getML = () => nullFallback(this.ml, nullFallback(this.config.ml, 16));
-  private getMT = () => nullFallback(this.mt, nullFallback(this.config.mt, 16));
-  private getMW = () =>
-    nullFallback(this.mw, nullFallback(this.config.mw, 608));
-  private getMH = () =>
-    nullFallback(this.mh, nullFallback(this.config.mh, 608));
-  private getMarginL = () =>
-    nullFallback(this.marginL, nullFallback(this.config.marginL, 8));
-  private getMarginT = () =>
-    nullFallback(this.marginT, nullFallback(this.config.marginT, 8));
-  private getMarginR = () =>
-    nullFallback(this.marginR, nullFallback(this.config.marginR, 8));
-  private getMarginB = () =>
-    nullFallback(this.marginB, nullFallback(this.config.marginB, 8));
-  private getFontSize = () =>
-    nullFallback(this.font.size, nullFallback(this.defaultFont.size, 24));
-  private getFontItalic = () =>
-    nullFallback(
-      this.font.italic,
-      nullFallback(this.defaultFont.italic, false)
-    );
-  private getFontBold = () =>
-    nullFallback(this.font.bold, nullFallback(this.defaultFont.bold, true));
-  private getFont = () =>
-    `${this.getFontItalic() ? "italic" : ""} ${this.getFontBold() ? "bold" : ""
-    } ${this.font.size}px '${this.font.face}'`;
-  private getRubySize = () => nullFallback(this.font.rubySize, nullFallback(this.defaultFont.rubyOffset, 0));
-  private getRubyOffset = () => nullFallback(this.font.rubyOffset, nullFallback(this.defaultFont.rubyOffset, 0));
-  private getFrameColor = () => nullFallback(this.config.frameColor, 0x000000);
-  private getFrameOpacity = () => nullFallback(this.config.frameOpacity, 0x80);
-  private getLinkColor = (linkColor?: number | null) =>
-    nullFallback(
-      linkColor,
-      nullFallback(this.config.defaultLinkColor, 0x000000)
-    );
-  private getSpeed = () => nullFallback(this.speed, 30);
-  private getVertical = () =>
-    nullFallback(this.vertical, nullFallback(this.config.vertical, false));
-  private getDefaultAlignment = () =>
-    this.vertical ? Alignment.Top : Alignment.Left;
-  private getShadow = () =>
-    nullFallback(this.shadow, nullFallback(this.font.shadow, true));
-  private getShadowColor = () =>
-    nullFallback(this.shadowColor, nullFallback(this.font.shadowColor, true));
-
-  getVisible = () => {
-    return this.visible;
-  };
-
-  getTransitionWorking = () => {
-    return this.transitionWorking;
   };
 
   isTextRemaining = () => {
-    return !!this.remainingText;
+    return !!this.m_remainingText;
   };
 
   resize = (dom: HTMLElement | null) => {
@@ -536,8 +605,8 @@ export class MessageLayer extends React.Component<
   };
 
   resizeEdit = () => {
-    this.messageLayerElementSetResizeEdit(this.back);
-    this.messageLayerElementSetResizeEdit(this.fore);
+    this.messageLayerElementSetResizeEdit(this.m_back);
+    this.messageLayerElementSetResizeEdit(this.m_fore);
   };
 
   private messageLayerElementSetResizeEdit = (
@@ -546,7 +615,7 @@ export class MessageLayer extends React.Component<
     if (!messageLayerElementSet.form) {
       return;
     }
-    const actualSize = this.getSize();
+    const actualSize = this.size;
     if (!actualSize) {
       return;
     }
@@ -568,62 +637,62 @@ export class MessageLayer extends React.Component<
     time: number,
     setting: TransitionSetting
   ) => {
-    this.transitionWorking = true;
-    this.transitionWorking = false;
+    this.m_transitionWorking = true;
+    this.m_transitionWorking = false;
   };
 
   update = async () => {
-    this.resize(this.back.base);
-    this.resize(this.back.highlight);
-    this.resize(this.back.form);
-    this.resize(this.fore.base);
-    this.resize(this.fore.highlight);
-    this.resize(this.fore.form);
+    this.resize(this.m_back.base);
+    this.resize(this.m_back.highlight);
+    this.resize(this.m_back.form);
+    this.resize(this.m_fore.base);
+    this.resize(this.m_fore.highlight);
+    this.resize(this.m_fore.form);
     this.resizeEdit();
-    if (!this.clickWaiting) {
-      for (let i = 0; i < this.remainingText.length; i++) {
-        const character = this.remainingText[i];
+    if (!this.m_clickWaiting) {
+      for (let i = 0; i < this.m_remainingText.length; i++) {
+        const character = this.m_remainingText[i];
         await this.writeCharacter(character);
       }
-      this.remainingText = "";
+      this.m_remainingText = "";
     }
-    if (this.processing) {
+    if (this.m_processing) {
       return;
     }
-    this.processing = true;
-    if (this.clickWaiting) {
-      if (!this.noWait) {
-        await sleep(this.getSpeed());
+    this.m_processing = true;
+    if (this.m_clickWaiting) {
+      if (!this.m_noWait) {
+        await sleep(this.speed);
       }
-      const newText = this.remainingText.substring(1);
-      const character = this.remainingText[0];
+      const newText = this.m_remainingText.substring(1);
+      const character = this.m_remainingText[0];
       await this.writeCharacter(character);
-      this.remainingText = nullFallback(newText, "");
+      this.m_remainingText = nullFallback(newText, "");
     }
-    this.processing = false;
+    this.m_processing = false;
   };
 
   writePosition = async (width: number, height: number, proceedPosition: boolean = true) => {
-    if (this.vertical) {
+    if (this.m_vertical) {
       if (
-        this.currentCaretPosition.y + height >
-        this.getMH() + this.getMT() - this.getMarginB()
+        this.m_currentCaretPosition.y + height >
+        this.mh + this.mt - this.marginB
       ) {
         this.addCarriageReturn();
-        this.afterSetAlignment = false;
+        this.m_afterSetAlignment = false;
       }
       if (
-        this.currentCaretPosition.x - width <
-        this.getML() + this.getMarginL()
+        this.m_currentCaretPosition.x - width <
+        this.ml + this.marginL
       ) {
-        this.remainingText = "";
-        this.processing = false;
+        this.m_remainingText = "";
+        this.m_processing = false;
         return null;
       }
       const characterRectangle: Rectangle = {
         position: {
-          x: this.currentCaretPosition.x - this.lineHeight + width,
-          y: this.currentCaretPosition.y,
+          x: this.m_currentCaretPosition.x - this.lineHeight + width,
+          y: this.m_currentCaretPosition.y,
         },
         size: {
           width,
@@ -632,30 +701,30 @@ export class MessageLayer extends React.Component<
       };
 
       if (proceedPosition) {
-        this.currentCaretPosition.y += height + this.getPitch();
+        this.m_currentCaretPosition.y += height + this.pitch;
       }
 
       return characterRectangle;
     } else {
       if (
-        this.currentCaretPosition.x + width >
-        this.getMW() + this.getML() - this.getMarginR()
+        this.m_currentCaretPosition.x + width >
+        this.mw + this.ml - this.marginR
       ) {
         this.addCarriageReturn();
-        this.afterSetAlignment = false;
+        this.m_afterSetAlignment = false;
       }
       if (
-        this.currentCaretPosition.y + height >
-        this.getMH() + this.getMT() - this.getMarginB()
+        this.m_currentCaretPosition.y + height >
+        this.mh + this.mt - this.marginB
       ) {
-        this.remainingText = "";
-        this.processing = false;
+        this.m_remainingText = "";
+        this.m_processing = false;
         return null;
       }
       const characterRectangle: Rectangle = {
         position: {
-          x: this.currentCaretPosition.x,
-          y: this.currentCaretPosition.y + this.lineHeight - height,
+          x: this.m_currentCaretPosition.x,
+          y: this.m_currentCaretPosition.y + this.lineHeight - height,
         },
         size: {
           width,
@@ -664,7 +733,7 @@ export class MessageLayer extends React.Component<
       };
 
       if (proceedPosition) {
-        this.currentCaretPosition.x += width + this.getPitch();
+        this.m_currentCaretPosition.x += width + this.pitch;
       }
 
       return characterRectangle;
@@ -683,19 +752,19 @@ export class MessageLayer extends React.Component<
     const currentFont = context.font;
     context.textAlign = textAlign;
     context.textBaseline = textBaseline;
-    context.font = `${this.font.rubySize}px ${this.font.face}`;
-    context.fillText(this.ruby, x, y);
-    this.setRuby("");
+    context.font = `${this.m_font.rubySize}px ${this.m_font.face}`;
+    context.fillText(this.m_ruby, x, y);
+    this.ruby = "";
     context.textAlign = currentTextAlign;
     context.textBaseline = currentBaseline;
     context.font = currentFont;
   };
 
   characterRotation = (context: CanvasRenderingContext2D, back: boolean = false) => {
-    if (this.rotationAnchor) {
-      context.translate(this.rotationAnchor.x, this.rotationAnchor.y);
+    if (this.m_rotationAnchor) {
+      context.translate(this.m_rotationAnchor.x, this.m_rotationAnchor.y);
       context.rotate(Math.PI / 2 * (back ? -1 : 1));
-      context.translate(-this.rotationAnchor.x, -this.rotationAnchor.y);
+      context.translate(-this.m_rotationAnchor.x, -this.m_rotationAnchor.y);
     }
   }
 
@@ -703,18 +772,18 @@ export class MessageLayer extends React.Component<
     if (!character) {
       return null;
     }
-    const context = this.fore.base?.getContext("2d");
+    const context = this.m_fore.base?.getContext("2d");
     if (!context) {
       return null;
     }
     context.globalAlpha = 1;
     context.textAlign = "left";
     context.textBaseline = "top";
-    context.font = this.getFont();
+    context.font = this.font;
     const width = context.measureText(character).width;
-    let height = this.getFontSize();
+    let height = this.fontSize;
 
-    if (this.vertical) {
+    if (this.m_vertical) {
       let xOffset = 0;
       let yOffset = 0;
 
@@ -754,42 +823,42 @@ export class MessageLayer extends React.Component<
       //        the character should be shift to right.
 
       if ((new RegExp(CHARACTER_SET_3.source + '|' + CHARACTER_SET_4.source + '|' + CHARACTER_SET_5.source)).test(character)) {
-        if (!this.isCharacterRotated) {
-          this.rotationAnchor = (await this.writePosition(width, height, false))?.position;
+        if (!this.m_isCharacterRotated) {
+          this.m_rotationAnchor = (await this.writePosition(width, height, false))?.position;
           this.characterRotation(context);
         }
-        this.isCharacterRotated = true;
+        this.m_isCharacterRotated = true;
       }
 
       const x =
-        this.currentCaretPosition.x -
+        this.m_currentCaretPosition.x -
         this.lineHeight -
         width -
-        this.getLineSpacing() / 5;
+        this.lineSpacing / 5;
 
-      if (this.ruby) {
+      if (this.m_ruby) {
         this.writeRuby(
           context,
           "center",
           "middle",
           x,
-          this.currentCaretPosition.y + height / 2
+          this.m_currentCaretPosition.y + height / 2
         );
       }
       const characterRectangle = await this.writePosition(width, height);
       if (!characterRectangle) {
         return null;
       }
-      if (this.shadow) {
-        context.fillStyle = integerToColorString(this.getShadowColor());
+      if (this.m_shadow) {
+        context.fillStyle = integerToColorString(this.shadowColor);
         context.fillText(
           character,
           characterRectangle.position.x + 2 + xOffset,
           characterRectangle.position.y + 2 + yOffset
         );
       }
-      if (this.font.edge) {
-        context.strokeStyle = integerToColorString(this.getEdgeColor());
+      if (this.m_font.edge) {
+        context.strokeStyle = integerToColorString(this.edgeColor);
         context.lineWidth = 2;
         context.strokeText(
           character,
@@ -797,32 +866,32 @@ export class MessageLayer extends React.Component<
           characterRectangle.position.y + yOffset
         );
       }
-      context.fillStyle = integerToColorString(this.getFontColor());
+      context.fillStyle = integerToColorString(this.fontColor);
       context.fillText(
         character,
         characterRectangle.position.x + xOffset,
         characterRectangle.position.y + yOffset
       );
 
-      if (this.isCharacterRotated) {
+      if (this.m_isCharacterRotated) {
         this.characterRotation(context, true);
-        this.isCharacterRotated = false;
+        this.m_isCharacterRotated = false;
       }
 
       return characterRectangle;
     } else {
       const y =
-        this.currentCaretPosition.y +
+        this.m_currentCaretPosition.y +
         this.lineHeight -
         height -
-        this.getLineSpacing() / 5;
+        this.lineSpacing / 5;
 
-      if (this.ruby) {
+      if (this.m_ruby) {
         this.writeRuby(
           context,
           "center",
           "bottom",
-          this.currentCaretPosition.x + width / 2,
+          this.m_currentCaretPosition.x + width / 2,
           y
         );
       }
@@ -830,16 +899,16 @@ export class MessageLayer extends React.Component<
       if (!characterRectangle) {
         return null;
       }
-      if (this.shadow) {
-        context.fillStyle = integerToColorString(this.getShadowColor());
+      if (this.m_shadow) {
+        context.fillStyle = integerToColorString(this.shadowColor);
         context.fillText(
           character,
           characterRectangle.position.x + 2,
           characterRectangle.position.y + 2
         );
       }
-      if (this.font.edge) {
-        context.strokeStyle = integerToColorString(this.getEdgeColor());
+      if (this.m_font.edge) {
+        context.strokeStyle = integerToColorString(this.edgeColor);
         context.lineWidth = 2;
         context.strokeText(
           character,
@@ -847,7 +916,7 @@ export class MessageLayer extends React.Component<
           characterRectangle.position.y
         );
       }
-      context.fillStyle = integerToColorString(this.getFontColor());
+      context.fillStyle = integerToColorString(this.fontColor);
       context.fillText(
         character,
         characterRectangle.position.x,
@@ -860,52 +929,52 @@ export class MessageLayer extends React.Component<
   writeGraph = async (image: HTMLImageElement) => {
     const width = image.naturalWidth;
     const height = image.naturalHeight;
-    const context = this.fore.base?.getContext("2d");
-    const height2 = this.font.size || height;
+    const context = this.m_fore.base?.getContext("2d");
+    const height2 = this.m_font.size || height;
     const ratio = height2 / height;
     const width2 = width * ratio;
     context?.drawImage(
       image,
-      this.currentCaretPosition.x,
-      this.currentCaretPosition.y + this.lineHeight - height2,
+      this.m_currentCaretPosition.x,
+      this.m_currentCaretPosition.y + this.lineHeight - height2,
       width2,
       height2
     );
     await this.writePosition(width2, height2);
-    this.afterSetAlignment = false;
+    this.m_afterSetAlignment = false;
   };
 
   calculateLeftMargin = (remainingWidth?: number): number => {
-    const margin = this.getMarginL() + this.getML();
-    if (!this.fore.base) {
+    const margin = this.marginL + this.ml;
+    if (!this.m_fore.base) {
       return margin;
     }
-    const lineWidth = this.getMW() - margin - this.getMarginR();
-    const context = this.fore.base.getContext("2d");
+    const lineWidth = this.mw - margin - this.marginR;
+    const context = this.m_fore.base.getContext("2d");
     if (!context) {
       return margin;
     }
     context.textAlign = "left";
     context.textBaseline = "top";
-    context.font = this.getFont();
+    context.font = this.font;
     const width = nullFallback(
       remainingWidth,
-      context.measureText(this.remainingText).width
+      context.measureText(this.m_remainingText).width
     );
-    const fullWidth: boolean = this.currentCaretPosition.x + width > lineWidth;
+    const fullWidth: boolean = this.m_currentCaretPosition.x + width > lineWidth;
     if (fullWidth) {
       return margin;
     }
-    switch (this.textAlignment) {
+    switch (this.m_textAlignment) {
       case Alignment.Default:
       case Alignment.Left: {
         return margin;
       }
       case Alignment.Center: {
-        return (this.getMW() - width) / 2 + this.getML();
+        return (this.mw - width) / 2 + this.ml;
       }
       case Alignment.Right: {
-        return this.getMW() + this.getML() - this.getMarginR() - width;
+        return this.mw + this.ml - this.marginR - width;
       }
       default: {
         return margin;
@@ -914,25 +983,25 @@ export class MessageLayer extends React.Component<
   };
 
   calculateTopMargin = (remainingHeight?: number): number => {
-    const margin = this.getMarginT() + this.getMT();
-    if (!this.fore.base) {
+    const margin = this.marginT + this.mt;
+    if (!this.m_fore.base) {
       return margin;
     }
-    const lineHeight = this.getMH() - margin - this.getMarginB() + this.getRubySize() + this.getRubyOffset();
-    const context = this.fore.base.getContext("2d");
+    const lineHeight = this.mh - margin - this.marginB + this.rubySize + this.rubyOffset;
+    const context = this.m_fore.base.getContext("2d");
     if (!context) {
       return margin;
     }
     context.textAlign = "left";
     context.textBaseline = "top";
-    context.font = this.getFont();
+    context.font = this.font;
     const height = nullFallback(
       remainingHeight,
-      this.getFontSize() * this.remainingText.length
+      this.fontSize * this.m_remainingText.length
     );
     const fullHeight: boolean =
-      this.currentCaretPosition.y + height > lineHeight;
-    switch (this.textAlignment) {
+      this.m_currentCaretPosition.y + height > lineHeight;
+    switch (this.m_textAlignment) {
       case Alignment.Default:
       case Alignment.Top: {
         return margin;
@@ -941,14 +1010,14 @@ export class MessageLayer extends React.Component<
         if (fullHeight) {
           return margin;
         } else {
-          return (this.getMH() - height) / 2 + this.getMT();
+          return (this.mh - height) / 2 + this.mt;
         }
       }
       case Alignment.Bottom: {
         if (fullHeight) {
           return margin;
         } else {
-          return this.getMH() + this.getMT() - this.getMarginB() - height;
+          return this.mh + this.mt - this.marginB - height;
         }
       }
     }
@@ -956,18 +1025,14 @@ export class MessageLayer extends React.Component<
   };
 
   addCarriageReturn = () => {
-    if (this.vertical) {
-      this.currentLine++;
-      this.currentCaretPosition.x -= this.lineHeight + this.getLineSpacing();
-      this.currentCaretPosition.y = this.calculateTopMargin();
-      this.lineHeight = this.getFontSize() + this.getRubySize() + this.getRubyOffset();
+    if (this.m_vertical) {
+      this.m_currentCaretPosition.x -= this.lineHeight + this.lineSpacing;
+      this.m_currentCaretPosition.y = this.calculateTopMargin();
     } else {
-      this.currentLine++;
-      this.currentCaretPosition.x = this.calculateLeftMargin();
-      this.currentCaretPosition.y += this.lineHeight + this.getLineSpacing();
-      this.lineHeight = this.getFontSize() + this.getRubySize() + this.getRubyOffset();
+      this.m_currentCaretPosition.x = this.calculateLeftMargin();
+      this.m_currentCaretPosition.y += this.lineHeight + this.lineSpacing;
     }
-    this.afterSetAlignment = true;
+    this.m_afterSetAlignment = true;
   };
 
   clearBase = (page: MessageLayerElementSet) => {
@@ -977,109 +1042,44 @@ export class MessageLayer extends React.Component<
     const context = page.base.getContext("2d");
     if (context) {
       context.clearRect(0, 0, page.base.width, page.base.height);
-      context.fillStyle = integerToColorString(this.getFrameColor());
-      context.globalAlpha = this.getFrameOpacity() / 0xff;
-      if (this.frame) {
-        context.drawImage(this.frame, this.getML(), this.getMT());
+      context.fillStyle = integerToColorString(this.frameColor);
+      context.globalAlpha = this.frameOpacity / 0xff;
+      if (this.m_frame) {
+        context.drawImage(this.m_frame, this.ml, this.mt);
       } else {
         context.fillRect(
-          this.getML(),
-          this.getMT(),
-          this.getMW(),
-          this.getMH()
+          this.ml,
+          this.mt,
+          this.mw,
+          this.mh
         );
       }
     }
   };
 
   clear = () => {
-    this.textAlignment = this.getDefaultAlignment();
+    this.m_textAlignment = this.defaultAlignment;
     this.recalculateCurrentCaretPosition();
-    this.clearBase(this.back);
-    this.clearBase(this.fore);
-    this.clearHighlight(this.back);
-    this.clearHighlight(this.fore);
-    this.lineWidths = [];
-    this.currentLine = 0;
-    this.links = [];
-    this.buttons = [];
-    while (this.fore.form?.firstChild) {
-      this.fore.form.firstChild.remove();
-    }
-  };
-
-  getClickableAreaMouseIn = (): ClickableAreaCollection | null => {
-    if (!this.cursorPosition) {
-      return null;
-    }
-    const mouseInClickableAreas = [...this.links, ...this.buttons].filter(
-      (clickableArea) =>
-        this.cursorPosition &&
-        positionIsInRectangle(this.cursorPosition, clickableArea.area)
-    );
-    if (mouseInClickableAreas.length > 0) {
-      return mouseInClickableAreas;
-    } else {
-      return null;
-    }
-  };
-
-  getClickableAreaMouseNotIn = (): ClickableAreaCollection | null => {
-    if (!this.cursorPosition) {
-      return null;
-    }
-    const mouseNotInClickableAreas = [...this.links, ...this.buttons].filter(
-      (clickableArea) =>
-        !this.cursorPosition ||
-        !positionIsInRectangle(this.cursorPosition, clickableArea.area)
-    );
-    if (mouseNotInClickableAreas.length > 0) {
-      return mouseNotInClickableAreas;
-    } else {
-      return null;
-    }
-  }; 
-  
-  setCurrentCaretPosition = (position: Position) => {
-    const newPosition: Position = {
-      x: position.x || this.currentCaretPosition.x,
-      y: position.y || this.currentCaretPosition.y,
-    }
-    this.currentCaretPosition = newPosition;
-  }
-
-  setCursorPosition = (position: Position) => {
-    const newPosition: Position = {
-      x: position.x || this.cursorPosition?.x || 0,
-      y: position.y || this.cursorPosition?.y || 0,
-    }
-    this.cursorPosition = newPosition;
-    const mouseInClickableAreas = this.getClickableAreaMouseIn();
-    this.clearHighlight(this.back);
-    this.clearHighlight(this.fore);
-    if (mouseInClickableAreas) {
-      for (const clickableArea of mouseInClickableAreas) {
-        this.highlightArea(clickableArea);
-      }
-    }
-    const mouseNotInClickableAreas = this.getClickableAreaMouseNotIn();
-    if (mouseNotInClickableAreas) {
-      for (const clickableArea of mouseNotInClickableAreas) {
-        if (isInstanceOfButton(clickableArea)){
-          this.drawButton(clickableArea);
-        }
-      }
+    this.clearBase(this.m_back);
+    this.clearBase(this.m_fore);
+    this.clearHighlight(this.m_back);
+    this.clearHighlight(this.m_fore);
+    this.m_lineWidths = [];
+    this.m_links = [];
+    this.m_buttons = [];
+    while (this.m_fore.form?.firstChild) {
+      this.m_fore.form.firstChild.remove();
     }
   };
 
   drawButton = (button: Button, cursorOn: boolean = false) => {
-    if (!button.params.image){
+    if (!button.params.image) {
       return;
     }
-    if (!this.fore.highlight) {
+    if (!this.m_fore.highlight) {
       return;
     }
-    const context = this.fore.highlight.getContext("2d");
+    const context = this.m_fore.highlight.getContext("2d");
     if (!context) {
       return;
     }
@@ -1098,18 +1098,18 @@ export class MessageLayer extends React.Component<
   }
 
   highlightArea = (clickableArea: Link | Button) => {
-    if (!this.fore.highlight) {
+    if (!this.m_fore.highlight) {
       return;
     }
-    const context = this.fore.highlight.getContext("2d");
+    const context = this.m_fore.highlight.getContext("2d");
     if (!context) {
       return;
     }
     context.clearRect(
       0,
       0,
-      this.fore.highlight.width,
-      this.fore.highlight.height
+      this.m_fore.highlight.width,
+      this.m_fore.highlight.height
     );
     if (isInstanceOfLink(clickableArea)) {
       context.globalAlpha = 0.2;
@@ -1139,7 +1139,7 @@ export class MessageLayer extends React.Component<
   };
 
   click = () => {
-    const mouseInClickableAreas = this.getClickableAreaMouseIn();
+    const mouseInClickableAreas = this.clickableAreaMouseIn;
     if (!mouseInClickableAreas) {
       return null;
     }
@@ -1148,28 +1148,8 @@ export class MessageLayer extends React.Component<
     }
   };
 
-  getSize = () => {
-    if (!this.fore.base) {
-      return null;
-    }
-    return {
-      width: this.fore.base.offsetWidth,
-      height: this.fore.base.offsetHeight,
-    } as Size;
-  };
-
-  getPosition = () => {
-    if (!this.fore.base) {
-      return null;
-    }
-    return {
-      x: this.fore.base.offsetLeft,
-      y: this.fore.base.offsetTop,
-    } as Position;
-  };
-
   getNextChoicePosition = (currentPosition: Position) => {
-    const nextCandidates = this.links.filter(
+    const nextCandidates = this.m_links.filter(
       (clickableArea) => currentPosition.y < clickableArea.area.position.y
     );
     let nextArea: Rectangle;
@@ -1186,7 +1166,7 @@ export class MessageLayer extends React.Component<
         }
       }).area;
     } else {
-      nextArea = this.links.reduce((previousValue, currentValue) => {
+      nextArea = this.m_links.reduce((previousValue, currentValue) => {
         if (
           previousValue.area.position.y < currentValue.area.position.y ||
           (previousValue.area.position.y === currentValue.area.position.y &&
@@ -1205,7 +1185,7 @@ export class MessageLayer extends React.Component<
   };
 
   getPreviousChoicePosition = (currentPosition: Position) => {
-    const nextCandidates = this.links.filter(
+    const nextCandidates = this.m_links.filter(
       (clickableArea) => currentPosition.y >= clickableArea.area.position.y
     );
     nextCandidates.pop();
@@ -1223,7 +1203,7 @@ export class MessageLayer extends React.Component<
         }
       }).area;
     } else {
-      nextArea = this.links.reduce((previousValue, currentValue) => {
+      nextArea = this.m_links.reduce((previousValue, currentValue) => {
         if (
           previousValue.area.position.y > currentValue.area.position.y ||
           (previousValue.area.position.y === currentValue.area.position.y &&
@@ -1247,20 +1227,20 @@ export class MessageLayer extends React.Component<
     return (
       <div
         ref={(e) => {
-          this.dom = e;
+          this.m_dom = e;
         }}
         className="message-layer"
-        style={{ display: this.visible ? "inherit" : "none" }}
+        style={{ display: this.m_visible ? "inherit" : "none" }}
       >
         <div
           ref={(e) => {
-            this.back.dom = e;
+            this.m_back.dom = e;
           }}
           style={{ display: "none" }}
         >
           <canvas
             ref={(e) => {
-              this.back.base = e;
+              this.m_back.base = e;
             }}
             style={{
               position: "absolute",
@@ -1273,7 +1253,7 @@ export class MessageLayer extends React.Component<
           />
           <canvas
             ref={(e) => {
-              this.back.highlight = e;
+              this.m_back.highlight = e;
             }}
             style={{
               position: "absolute",
@@ -1286,7 +1266,7 @@ export class MessageLayer extends React.Component<
           />
           <div
             ref={(e) => {
-              this.back.form = e;
+              this.m_back.form = e;
             }}
             style={{
               position: "absolute",
@@ -1300,12 +1280,12 @@ export class MessageLayer extends React.Component<
         </div>
         <div
           ref={(e) => {
-            this.fore.dom = e;
+            this.m_fore.dom = e;
           }}
         >
           <canvas
             ref={(e) => {
-              this.fore.base = e;
+              this.m_fore.base = e;
             }}
             style={{
               position: "absolute",
@@ -1318,7 +1298,7 @@ export class MessageLayer extends React.Component<
           />
           <canvas
             ref={(e) => {
-              this.fore.highlight = e;
+              this.m_fore.highlight = e;
             }}
             style={{
               position: "absolute",
@@ -1331,7 +1311,7 @@ export class MessageLayer extends React.Component<
           />
           <div
             ref={(e) => {
-              this.fore.form = e;
+              this.m_fore.form = e;
             }}
             style={{
               position: "absolute",
