@@ -23,6 +23,8 @@ import { messageLayerConfigDefault } from "../configs/config";
 import ts, { ScriptTarget } from "typescript";
 import "../style.css";
 
+const TARGET_FPS = 120;
+
 export let fag: Fsgs;
 let fsgs: Fsgs;
 let mp: {};
@@ -178,11 +180,14 @@ export class Fsgs extends React.Component<FsgsProps> {
   private get scWidth() {return nullFallback(this.m_config.windowConfig?.scWidth, 640);}
   private get scHeight() {return nullFallback(this.m_config.windowConfig?.scHeight, 480);}
   private get chSpeedNormal() {return nullFallback(this.m_config.windowConfig?.chSpeeds?.normal, 30);}
-  private get messageLayerConfig () {
+  get messageLayerConfig () {
     return nullFallback(
       this.m_config.messageLayerConfig,
       messageLayerConfigDefault
     );
+  }
+  private get currentMessageLayer () {
+    return this.m_messageLayers[this.m_currentMessageLayerNumber];
   }
 
   async componentDidMount() {
@@ -267,7 +272,7 @@ export class Fsgs extends React.Component<FsgsProps> {
         await this.updateCanvas();
         // console.log("------ Update Frame End ------");
       }
-    }, 1000 / 120);
+    }, 1000 / TARGET_FPS);
 
     this.setState({});
   }
@@ -411,11 +416,9 @@ export class Fsgs extends React.Component<FsgsProps> {
     const image = new Image();
     image.src = args.image as string;
     image.onload = async () => {
-      const messageLayer = this.m_messageLayers[
-        this.m_currentMessageLayerNumber
-      ];
+      image.onload = null;
+      const messageLayer = this.currentMessageLayer;
       args.image = image;
-      console.log(`Set button current message layer: ${this.m_currentMessageLayerNumber}`);
       console.log(messageLayer);
       messageLayer?.addButton(args);
     }
@@ -434,7 +437,7 @@ export class Fsgs extends React.Component<FsgsProps> {
           break;
         }
         case "graph": {
-          const messageLayer = this.m_messageLayers[this.m_currentMessageLayerNumber];
+          const messageLayer = this.currentMessageLayer;
           await messageLayer?.writeGraph(image);
           break;
         }
@@ -771,7 +774,7 @@ export class Fsgs extends React.Component<FsgsProps> {
     if (typeof target === "string") {
       const label = this.m_labelStore[target.substr(1)];
       if (label) {
-        return label.index;
+        return label.index - 1;
       }
     } else if (typeof target === "number") {
       return target;
@@ -852,7 +855,7 @@ export class Fsgs extends React.Component<FsgsProps> {
         return;
       }
       case "ArrowUp": {
-        const messageLayer = this.m_messageLayers[this.m_currentMessageLayerNumber];
+        const messageLayer = this.currentMessageLayer;
         if (!messageLayer) {
           return;
         }
@@ -863,7 +866,7 @@ export class Fsgs extends React.Component<FsgsProps> {
         return;
       }
       case "ArrowDown": {
-        const messageLayer = this.m_messageLayers[this.m_currentMessageLayerNumber];
+        const messageLayer = this.currentMessageLayer;
         if (!messageLayer) {
           return;
         }
@@ -911,7 +914,7 @@ export class Fsgs extends React.Component<FsgsProps> {
   };
 
   ch = (text: string) => {
-    const messageLayer = this.m_messageLayers[this.m_currentMessageLayerNumber];
+    const messageLayer = this.currentMessageLayer;
     if(!messageLayer){
       return;
     }
@@ -986,7 +989,7 @@ export class Fsgs extends React.Component<FsgsProps> {
     if (this.m_linkParams) {
       this.m_linkParams.text = text;
     } else {
-      const messageLayer = this.m_messageLayers[this.m_currentMessageLayerNumber];
+      const messageLayer = this.currentMessageLayer;
       if(!messageLayer){
         return;
       }
@@ -1114,7 +1117,7 @@ export class Fsgs extends React.Component<FsgsProps> {
     if (!this.m_linkParams) {
       return;
     }
-    const messageLayer = this.m_messageLayers[this.m_currentMessageLayerNumber];
+    const messageLayer = this.currentMessageLayer;
     await messageLayer?.addLink(this.m_linkParams);
     this.m_linkParams = null;
   };
@@ -1125,7 +1128,7 @@ export class Fsgs extends React.Component<FsgsProps> {
   };
 
   edit = (params: ParameterSet) => {
-    const messageLayer = this.m_messageLayers[this.m_currentMessageLayerNumber];
+    const messageLayer = this.currentMessageLayer;
     messageLayer?.addEdit(params, (value: string) => {
       eval(`${params.name} = '${value}'`);
     });
@@ -1133,7 +1136,7 @@ export class Fsgs extends React.Component<FsgsProps> {
 
   emb = (exp: string) => {
     const text = `${eval(exp)}`;
-    const messageLayer = this.m_messageLayers[this.m_currentMessageLayerNumber];
+    const messageLayer = this.currentMessageLayer;
     if(!messageLayer){
       return;
     }
@@ -1187,7 +1190,7 @@ export class Fsgs extends React.Component<FsgsProps> {
     if (!text) {
       return;
     }
-    const messageLayer = this.m_messageLayers[this.m_currentMessageLayerNumber];
+    const messageLayer = this.currentMessageLayer;
     if(!messageLayer){
       return;
     }
@@ -1207,7 +1210,7 @@ export class Fsgs extends React.Component<FsgsProps> {
       console.log(`Message Layer Number: ${messageLayerNumber}`);
       messageLayer = this.m_messageLayers[messageLayerNumber];
     } else {
-      messageLayer = this.m_messageLayers[this.m_currentMessageLayerNumber];
+      messageLayer = this.currentMessageLayer;
     }
     
     if (!messageLayer) {
@@ -1252,7 +1255,7 @@ export class Fsgs extends React.Component<FsgsProps> {
       return;
     }
     this.m_currentMessageLayerNumber = this.parseLayerNumber(params.layer).number;
-    const messageLayer = this.m_messageLayers[this.m_currentMessageLayerNumber];
+    const messageLayer = this.currentMessageLayer;
     if (!messageLayer) {
       return;
     }

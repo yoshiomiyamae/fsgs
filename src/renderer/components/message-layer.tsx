@@ -455,7 +455,7 @@ export class MessageLayer extends React.Component<
   private get defaultAlignment() { return this.m_vertical ? Alignment.Top : Alignment.Left; }
   get shadow() { return nullFallback(this.m_shadow, nullFallback(this.m_font.shadow, true)); }
   private get shadowColor() { return nullFallback(this.m_shadowColor, nullFallback(this.m_font.shadowColor, true)); }
-
+  get buttons() { return this.m_buttons }
 
   changeFont = (font: Font) => {
     this.m_config.defaultFont = font;
@@ -485,6 +485,7 @@ export class MessageLayer extends React.Component<
   };
 
   addButton = async (args: SetButtonArgs) => {
+    console.log("add button", args);
     if (!args.image) {
       return;
     }
