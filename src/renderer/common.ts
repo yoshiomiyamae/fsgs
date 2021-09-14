@@ -58,11 +58,13 @@ export const margeRectangle = (
   return rectangle;
 };
 
+export const nullUndefinedCheck = <T>(value: T | null | undefined) => value === undefined || value === null;
+
 export const nullFallback = <T>(
   value: T | null | undefined,
   fallbackValue: any | null | undefined
 ) => {
-  if (value === undefined || value === null) {
+  if (nullUndefinedCheck(value)) {
     return <T>fallbackValue;
   } else {
     return <T>value;

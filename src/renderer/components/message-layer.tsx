@@ -90,6 +90,8 @@ export class MessageLayer extends React.Component<
   private m_transitionWorking: boolean;
   private m_isCharacterRotated: boolean;
   private m_rotationAnchor: Position | undefined;
+  private m_frameColor: number;
+  private m_frameOpacity: number;
 
   constructor(props: MessageLayerProps) {
     super(props);
@@ -144,6 +146,8 @@ export class MessageLayer extends React.Component<
       x: 0,
       y: 0,
     }
+    this.m_frameColor = this.frameColor;
+    this.m_frameOpacity = this.frameOpacity;
   }
 
   set text(text: string) {
@@ -292,7 +296,6 @@ export class MessageLayer extends React.Component<
     this.m_frame = frame;
     this.m_mw = this.m_frame.naturalWidth;
     this.m_mh = this.m_frame.naturalHeight;
-    this.clear();
   };
 
   set opacity(opacity: number) {
@@ -389,13 +392,26 @@ export class MessageLayer extends React.Component<
 
   get size() {
     if (!this.m_fore.base) {
-      return null;
+      return {
+        width: 0,
+        height: 0,
+      };
     }
     return {
       width: this.m_fore.base.offsetWidth,
       height: this.m_fore.base.offsetHeight,
     } as Size;
   };
+  set size(size: Size) {
+    if (this.m_fore.base) {
+      this.m_fore.base.width = size.width;
+      this.m_fore.base.height = size.height;
+    }
+    if (this.m_back.base) {
+      this.m_back.base.width = size.width;
+      this.m_back.base.height = size.height;
+    }
+  }
 
   get position() {
     if (!this.m_fore.base) {
@@ -443,8 +459,10 @@ export class MessageLayer extends React.Component<
   }
   private get rubySize() { return nullFallback(this.m_font.rubySize, nullFallback(this.m_defaultFont.rubyOffset, 0)); }
   private get rubyOffset() { return nullFallback(this.m_font.rubyOffset, nullFallback(this.m_defaultFont.rubyOffset, 0)); }
-  private get frameColor() { return nullFallback(this.m_config.frameColor, 0x000000); }
-  private get frameOpacity() { return nullFallback(this.m_config.frameOpacity, 0x80); }
+  get frameColor() { return nullFallback(this.m_frameColor, nullFallback(this.m_config.frameColor, 0x000000)); }
+  set frameColor(frameColor: number) { this.m_frameColor = frameColor; }
+  get frameOpacity() { return nullFallback(this.m_frameOpacity, nullFallback(this.m_config.frameOpacity, 0x80)); }
+  set frameOpacity(frameOpacity: number) { this.m_frameOpacity = frameOpacity; }
   private getLinkColor = (linkColor?: number | null) =>
     nullFallback(
       linkColor,
@@ -1026,6 +1044,7 @@ export class MessageLayer extends React.Component<
   };
 
   addCarriageReturn = () => {
+    console.log("before caret position", this.m_currentCaretPosition);
     if (this.m_vertical) {
       this.m_currentCaretPosition.x -= this.lineHeight + this.lineSpacing;
       this.m_currentCaretPosition.y = this.calculateTopMargin();
@@ -1033,6 +1052,7 @@ export class MessageLayer extends React.Component<
       this.m_currentCaretPosition.x = this.calculateLeftMargin();
       this.m_currentCaretPosition.y += this.lineHeight + this.lineSpacing;
     }
+    console.log("after caret position", this.m_currentCaretPosition);
     this.m_afterSetAlignment = true;
   };
 
@@ -1044,13 +1064,24 @@ export class MessageLayer extends React.Component<
     if (context) {
       context.clearRect(0, 0, page.base.width, page.base.height);
       context.fillStyle = integerToColorString(this.frameColor);
-      context.globalAlpha = this.frameOpacity / 0xff;
       if (this.m_frame) {
+        context.globalAlpha = 1;
         context.drawImage(this.m_frame, this.ml, this.mt);
       } else {
+        context.globalAlpha = this.frameOpacity / 0xff;
         context.fillRect(
           this.ml,
           this.mt,
+          this.mw,
+          this.mh
+        );
+      }
+      if (process.env.NODE_ENV === "development") {
+        context.globalAlpha = 1;
+        context.strokeStyle = "#00FF00";
+        context.strokeRect(
+          this.ml + this.marginL,
+          this.mt + this.marginT,
           this.mw,
           this.mh
         );
