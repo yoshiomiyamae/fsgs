@@ -774,7 +774,7 @@ export class Fsgs extends React.Component<FsgsProps> {
     if (typeof target === "string") {
       const label = this.m_labelStore[target.substr(1)];
       if (label) {
-        return label.index - 1;
+        return label.index;
       }
     } else if (typeof target === "number") {
       return target;
@@ -793,6 +793,7 @@ export class Fsgs extends React.Component<FsgsProps> {
     if (storage && (target === null || target === undefined)) {
       if (storage !== this.m_currentScriptName) {
         await this.loadScript(storage, 0);
+        return;
       } else {
         // console.log("Jump to first.");
         this.m_programCounter = 0;
@@ -800,6 +801,7 @@ export class Fsgs extends React.Component<FsgsProps> {
     } else if (storage && target !== null && target !== undefined) {
       if (storage !== this.m_currentScriptName) {
         await this.loadScript(storage, target);
+        return;
       } else {
         const programCounter = this.getProgramCounter(target);
         // console.log(`Jump to ${target} (${programCounter}) of script ${storage}`);

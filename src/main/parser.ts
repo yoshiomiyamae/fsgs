@@ -144,14 +144,13 @@ export class FagParser {
             }
             if (tagName === "iscript") {
               inScript = true;
-            } else {
-              output.push(<Operation>{
-                action: tagName,
-                params: tagParams,
-              });
-              tagName = "";
-              tagParams = {};
             }
+            output.push(<Operation>{
+              action: tagName,
+              params: tagParams,
+            });
+            tagName = "";
+            tagParams = {};
             inTag = false;
           } else {
             temp += currentCharacter;
