@@ -263,39 +263,49 @@ export class MessageLayer extends React.Component<
   };
 
   set vertical(vertical: boolean) {
-    console.log("%cVertical mode is under development", "color: orange");
+    vertical && console.log("%cVertical mode is under development", "color: orange");
     this.m_vertical = vertical;
     this.recalculateCurrentCaretPosition();
   };
 
   set left(left: number) {
     this.m_ml = left;
+    this.recalculateCurrentCaretPosition();
   };
 
   set top(top: number) {
     this.m_mt = top;
+    this.recalculateCurrentCaretPosition();
   };
 
   set marginL(marginL: number) {
     this.m_marginL = marginL;
+    this.recalculateCurrentCaretPosition();
   };
 
   set marginT(marginT: number) {
     this.m_marginT = marginT;
+    this.recalculateCurrentCaretPosition();
   };
 
   set marginR(marginR: number) {
     this.m_marginR = marginR;
+    this.recalculateCurrentCaretPosition();
   };
 
   set marginB(marginB: number) {
     this.m_marginB = marginB;
+    this.recalculateCurrentCaretPosition();
   };
 
   set frame(frame: HTMLImageElement) {
     this.m_frame = frame;
     this.m_mw = this.m_frame.naturalWidth;
     this.m_mh = this.m_frame.naturalHeight;
+    this.m_frame.onload = () => {
+      this.drawFrame();
+    }
+    this.drawFrame();
   };
 
   set opacity(opacity: number) {
@@ -692,6 +702,7 @@ export class MessageLayer extends React.Component<
   };
 
   writePosition = async (width: number, height: number, proceedPosition: boolean = true) => {
+    console.log("Write position", this.m_currentCaretPosition);
     if (this.m_vertical) {
       if (
         this.m_currentCaretPosition.y + height >
@@ -1056,37 +1067,66 @@ export class MessageLayer extends React.Component<
     this.m_afterSetAlignment = true;
   };
 
+  drawFrame = () => {
+    if (!this.m_fore.base){
+      return ;
+    }
+    const context = this.m_fore.base.getContext("2d");
+    if (!context) {
+      return;
+    }
+    if (this.m_frame) {
+      context.clearRect(0, 0, this.m_fore.base.width, this.m_fore.base.height);
+      context.globalAlpha = 1;
+      context.drawImage(this.m_frame, this.ml, this.mt);
+      this.drawDebugRect();
+    }
+  }
+
+  drawDebugRect = () => {
+    if (process.env.NODE_ENV !== "development") {
+      return;
+    }
+    if (!this.m_fore.base){
+      return ;
+    }
+    const context = this.m_fore.base.getContext("2d");
+    if (!context) {
+      return;
+    }
+    context.globalAlpha = 1;
+    context.strokeStyle = "#00FF00";
+    context.strokeRect(
+      this.ml + this.marginL,
+      this.mt + this.marginT,
+      this.mw - this.marginL - this.marginR,
+      this.mh - this.marginT - this.marginB
+    );
+  }
+
   clearBase = (page: MessageLayerElementSet) => {
     if (!page.base) {
       return;
     }
     const context = page.base.getContext("2d");
-    if (context) {
-      context.clearRect(0, 0, page.base.width, page.base.height);
-      context.fillStyle = integerToColorString(this.frameColor);
-      if (this.m_frame) {
-        context.globalAlpha = 1;
-        context.drawImage(this.m_frame, this.ml, this.mt);
-      } else {
-        context.globalAlpha = this.frameOpacity / 0xff;
-        context.fillRect(
-          this.ml,
-          this.mt,
-          this.mw,
-          this.mh
-        );
-      }
-      if (process.env.NODE_ENV === "development") {
-        context.globalAlpha = 1;
-        context.strokeStyle = "#00FF00";
-        context.strokeRect(
-          this.ml + this.marginL,
-          this.mt + this.marginT,
-          this.mw,
-          this.mh
-        );
-      }
+    if (!context) {
+      return;
     }
+    context.clearRect(0, 0, page.base.width, page.base.height);
+    if (this.m_frame) {
+      context.drawImage(this.m_frame, this.ml, this.mt);
+    } else {
+      context.fillStyle = integerToColorString(this.frameColor);
+      context.globalAlpha = this.frameOpacity / 0xff;
+      context.fillRect(
+        this.ml,
+        this.mt,
+        this.mw,
+        this.mh
+      );
+    }
+
+    this.drawDebugRect();
   };
 
   clear = () => {
@@ -1103,6 +1143,12 @@ export class MessageLayer extends React.Component<
       this.m_fore.form.firstChild.remove();
     }
   };
+
+  redrawAllButton = () => {
+    for(let button of this.buttons) {
+      this.drawButton(button);
+    }
+  }
 
   drawButton = (button: Button, cursorOn: boolean = false) => {
     if (!button.params.image) {

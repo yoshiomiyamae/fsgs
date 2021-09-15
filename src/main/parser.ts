@@ -140,6 +140,9 @@ export class FagParser {
                 paramName = "";
                 temp = "";
                 inParam = false;
+              } else {
+                tagParams[temp] = true;
+                temp = "";
               }
             }
             if (tagName === "iscript") {
