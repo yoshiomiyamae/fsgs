@@ -69,6 +69,7 @@ export class MessageLayer extends React.Component<
   private m_clickWaiting: boolean;
   private m_defaultFont: Font;
   private m_font: Font;
+  private m_lineHeight: number;
   private m_lineWidths: number[];
   private m_textAlignment: Alignment;
   private m_afterSetAlignment: boolean;
@@ -118,6 +119,7 @@ export class MessageLayer extends React.Component<
     this.m_config = props.config;
     this.m_defaultFont = { ...this.m_config.defaultFont };
     this.m_font = { ...this.m_config.defaultFont };
+    this.m_lineHeight = this.fontSize + this.rubySize + this.rubyOffset;
     this.m_lineWidths = [];
     this.m_textAlignment = Alignment.Default;
     this.m_ml = this.ml;
@@ -179,12 +181,13 @@ export class MessageLayer extends React.Component<
     this.m_afterSetAlignment = false;
   };
 
-  get lineHeight() {
-    return this.fontSize + this.rubySize + this.rubyOffset;
-  }
+  // get lineHeight() {
+  //   return this.fontSize + this.rubySize + this.rubyOffset;
+  // }
 
   set ruby(text: string) {
     this.m_ruby = text;
+    this.m_lineHeight = this.fontSize + this.rubySize + this.rubyOffset;
   };
 
   set fontColor(color: string | number) {
@@ -210,6 +213,7 @@ export class MessageLayer extends React.Component<
       ...this.m_font,
       size: +size,
     };
+    this.m_lineHeight = +size + this.rubySize + this.rubyOffset;
   };
 
   set fontEdge(edge: string | boolean) {
@@ -580,7 +584,7 @@ export class MessageLayer extends React.Component<
     const height = parseInt(nullFallback(inputStyle.height, "0"));
     const y =
       this.m_currentCaretPosition.y +
-      this.lineHeight -
+      this.m_lineHeight -
       height -
       this.lineSpacing / 5;
     const x = this.m_currentCaretPosition.x;
@@ -723,7 +727,7 @@ export class MessageLayer extends React.Component<
       }
       const characterRectangle: Rectangle = {
         position: {
-          x: this.m_currentCaretPosition.x - this.lineHeight + width,
+          x: this.m_currentCaretPosition.x - this.m_lineHeight + width,
           y: this.m_currentCaretPosition.y,
         },
         size: {
@@ -756,7 +760,7 @@ export class MessageLayer extends React.Component<
       const characterRectangle: Rectangle = {
         position: {
           x: this.m_currentCaretPosition.x,
-          y: this.m_currentCaretPosition.y + this.lineHeight - height,
+          y: this.m_currentCaretPosition.y + this.m_lineHeight - height,
         },
         size: {
           width,
@@ -864,7 +868,7 @@ export class MessageLayer extends React.Component<
 
       const x =
         this.m_currentCaretPosition.x -
-        this.lineHeight -
+        this.m_lineHeight -
         width -
         this.lineSpacing / 5;
 
@@ -914,7 +918,7 @@ export class MessageLayer extends React.Component<
     } else {
       const y =
         this.m_currentCaretPosition.y +
-        this.lineHeight -
+        this.m_lineHeight -
         height -
         this.lineSpacing / 5;
 
@@ -968,7 +972,7 @@ export class MessageLayer extends React.Component<
     context?.drawImage(
       image,
       this.m_currentCaretPosition.x,
-      this.m_currentCaretPosition.y + this.lineHeight - height2,
+      this.m_currentCaretPosition.y + this.m_lineHeight - height2,
       width2,
       height2
     );
@@ -1059,11 +1063,13 @@ export class MessageLayer extends React.Component<
   addCarriageReturn = () => {
     logger.trace("Before caret position", this.m_currentCaretPosition);
     if (this.m_vertical) {
-      this.m_currentCaretPosition.x -= this.lineHeight + this.lineSpacing;
+      this.m_currentCaretPosition.x -= this.m_lineHeight + this.lineSpacing;
       this.m_currentCaretPosition.y = this.calculateTopMargin();
+      this.m_lineHeight = this.fontSize + this.rubySize + this.rubyOffset;
     } else {
       this.m_currentCaretPosition.x = this.calculateLeftMargin();
-      this.m_currentCaretPosition.y += this.lineHeight + this.lineSpacing;
+      this.m_currentCaretPosition.y += this.m_lineHeight + this.lineSpacing;
+      this.m_lineHeight = this.fontSize + this.rubySize + this.rubyOffset;
     }
     logger.trace("After caret position", this.m_currentCaretPosition);
     this.m_afterSetAlignment = true;
