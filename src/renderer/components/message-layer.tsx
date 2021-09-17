@@ -26,8 +26,10 @@ import {
   integerToRgb,
   nullFallback,
   positionIsInRectangle,
+  isDevelopmentMode,
 } from "../common";
 import { LayerPages } from "../../main/model";
+import { logger } from "../logging";
 
 export interface MessageLayerProps {
   speed: number;
@@ -263,7 +265,7 @@ export class MessageLayer extends React.Component<
   };
 
   set vertical(vertical: boolean) {
-    vertical && console.log("%cVertical mode is under development", "color: orange");
+    vertical && logger.info("%cVertical mode is under development", "color: orange");
     this.m_vertical = vertical;
     this.recalculateCurrentCaretPosition();
   };
@@ -513,7 +515,7 @@ export class MessageLayer extends React.Component<
   };
 
   addButton = async (args: SetButtonArgs) => {
-    console.log("add button", args);
+    logger.debug("add button", args);
     if (!args.image) {
       return;
     }
@@ -533,7 +535,7 @@ export class MessageLayer extends React.Component<
       params: args,
     };
     this.m_buttons.push(button);
-    console.log('Buttons', this.m_buttons);
+    logger.debug('Buttons', this.m_buttons);
     this.drawButton(button);
   };
 
@@ -702,7 +704,7 @@ export class MessageLayer extends React.Component<
   };
 
   writePosition = async (width: number, height: number, proceedPosition: boolean = true) => {
-    console.log("Write position", this.m_currentCaretPosition);
+    logger.trace("Write position", this.m_currentCaretPosition);
     if (this.m_vertical) {
       if (
         this.m_currentCaretPosition.y + height >
@@ -1055,7 +1057,7 @@ export class MessageLayer extends React.Component<
   };
 
   addCarriageReturn = () => {
-    console.log("before caret position", this.m_currentCaretPosition);
+    logger.trace("Before caret position", this.m_currentCaretPosition);
     if (this.m_vertical) {
       this.m_currentCaretPosition.x -= this.lineHeight + this.lineSpacing;
       this.m_currentCaretPosition.y = this.calculateTopMargin();
@@ -1063,7 +1065,7 @@ export class MessageLayer extends React.Component<
       this.m_currentCaretPosition.x = this.calculateLeftMargin();
       this.m_currentCaretPosition.y += this.lineHeight + this.lineSpacing;
     }
-    console.log("after caret position", this.m_currentCaretPosition);
+    logger.trace("After caret position", this.m_currentCaretPosition);
     this.m_afterSetAlignment = true;
   };
 
@@ -1084,7 +1086,7 @@ export class MessageLayer extends React.Component<
   }
 
   drawDebugRect = () => {
-    if (process.env.NODE_ENV !== "development") {
+    if (!isDevelopmentMode) {
       return;
     }
     if (!this.m_fore.base){

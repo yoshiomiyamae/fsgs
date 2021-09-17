@@ -1,4 +1,5 @@
 import * as React from "react";
+import { isDevelopmentMode } from "../common";
 import {
   LayerPages,
 } from "../models/fsgs-model";
@@ -65,7 +66,7 @@ export class ImageLayer extends Layer<ImageLayerProps> {
         this.m_dom.style.width = "";
         this.m_dom.style.height = `${clientHeight}px`;
       }
-      process.env.NODE_ENV === 'development' && this.showFps();
+      isDevelopmentMode && this.showFps();
     }
   };
 

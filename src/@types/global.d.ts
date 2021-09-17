@@ -32,6 +32,15 @@ declare global {
         };
         setTitle: (title: string) => Promise<any>;
       };
+      logger: {
+        trace: (message: any, ...args: any[]) => Promise<void>;
+        debug: (message: any, ...args: any[]) => Promise<void>;
+        info: (message: any, ...args: any[]) => Promise<void>;
+        warn: (message: any, ...args: any[]) => Promise<void>;
+        error: (message: any, ...args: any[]) => Promise<void>;
+        fatal: (message: any, ...args: any[]) => Promise<void>;
+        mark: (message: any, ...args: any[]) => Promise<void>;
+      };
       shell: Electron.Shell;
     };
   }

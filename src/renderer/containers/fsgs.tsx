@@ -23,6 +23,7 @@ import { messageLayerConfigDefault } from "../configs/config";
 import ts, { ScriptTarget } from "typescript";
 import "../style.css";
 import { type } from "os";
+import { logger } from "../logging";
 
 const TARGET_FPS = 120;
 
@@ -156,7 +157,7 @@ export class Fsgs extends React.Component<FsgsProps> {
     document.onkeydown = this.onKeydown;
 
     const config = await window.api.getConfig();
-    console.log(config);
+    logger.debug(config);
     this.m_config = config;
     await window.api.window.setTitle(this.m_config.title || 'FSGS');
 
@@ -246,17 +247,17 @@ export class Fsgs extends React.Component<FsgsProps> {
     this.loadScript("first.ks", 0);
 
     const windowBounds = await window.api.window.getBounds();
-    console.log(
+    logger.debug(
       `offsetWidth: ${document.body.offsetWidth}, offsetHight: ${document.body.offsetHeight}`
     );
     const horizontalMargin = windowBounds.width - document.body.offsetWidth;
     const verticalMargin = windowBounds.height - document.body.offsetHeight;
-    console.log(
+    logger.debug(
       `horizontalMargin: ${horizontalMargin}, verticalMargin: ${verticalMargin}`
     );
     const height = verticalMargin + this.scHeight;
     const width = horizontalMargin + this.scWidth;
-    console.log(
+    logger.debug(
       `scWidth: ${this.scWidth}, scHeight: ${this.scHeight}`
     );
     const x = Math.round((window.screen.width - width) / 2);
@@ -269,9 +270,9 @@ export class Fsgs extends React.Component<FsgsProps> {
     }
     setInterval(async () => {
       if (!this.m_processing) {
-        // console.log("----- Update Frame Start -----");
+        // logger.debug("----- Update Frame Start -----");
         await this.updateCanvas();
-        // console.log("------ Update Frame End ------");
+        // logger.debug("------ Update Frame End ------");
       }
     }, 1000 / TARGET_FPS);
 
@@ -380,13 +381,13 @@ export class Fsgs extends React.Component<FsgsProps> {
     scriptName: string,
     startFrom: string | number
   ) => {
-    // console.log ("Load script called")
+    // logger.debug ("Load script called")
     const data: SetScriptArgs = await window.api.getScript({
       scriptName,
       startFrom,
     });
 
-    console.log("script", data.script);
+    logger.debug("script", data.script);
     this.m_currentScriptName = data.filePath;
     this.m_script = data.script;
     if (this.m_script) {
@@ -408,7 +409,7 @@ export class Fsgs extends React.Component<FsgsProps> {
       }
     }
 
-    // console.log(`Script: ${scriptName} Loaded.`)
+    // logger.debug(`Script: ${scriptName} Loaded.`)
     await this.jump(null, data.startFrom);
   };
 
@@ -419,7 +420,7 @@ export class Fsgs extends React.Component<FsgsProps> {
       image.onload = null;
       const messageLayer = this.currentMessageLayer;
       args.image = image;
-      console.log(messageLayer);
+      logger.debug(messageLayer);
       messageLayer?.addButton(args);
     }
   }
@@ -494,7 +495,7 @@ export class Fsgs extends React.Component<FsgsProps> {
 
     for (const key in operation.params) {
       const values = `${operation.params[key]}`.split("|");
-      // console.log("param before: %j", JSON.stringify(operation.params)`);
+      // logger.debug("param before: %j", JSON.stringify(operation.params)`);
       operation.params[key] = values.reduce((previousValue, currentValue) => {
         if (previousValue) {
           return previousValue;
@@ -510,16 +511,16 @@ export class Fsgs extends React.Component<FsgsProps> {
         }
         return "";
       }, "");
-      // console.log("param after: %j", JSON.stringify(operation.params)`);
+      // logger.debug("param after: %j", JSON.stringify(operation.params)`);
     }
-    if (this.m_ignoreIf && ['else', 'elseif', 'endif'].indexOf(operation.action) === -1) {
-      // console.log(`Ignore if: ${this.ignoreIf}, action: ${operation.action}`);
+    if (this.m_ignoreIf && ['elseif', 'endif'].indexOf(operation.action) === -1) {
+      // logger.debug(`Ignore if: ${this.ignoreIf}, action: ${operation.action}`);
       return;
     }
     if (operation.params.cond && !this.eval(operation.params.cond)) {
       return;
     }
-    console.log(operation);
+    logger.debug(operation);
     switch (operation.action) {
       case "ch": {
         this.ch(operation.params.text);
@@ -796,8 +797,8 @@ export class Fsgs extends React.Component<FsgsProps> {
     storage: string | null,
     target?: string | number | null
   ) => {
-    // console.log("Jump called");
-    console.log(
+    // logger.debug("Jump called");
+    logger.debug(
       `storage: ${storage}, target: ${target}, currentScript: ${this.m_currentScriptName}, currentPC: ${this.m_programCounter}`
     );
     if (storage && nullUndefinedCheck(target)) {
@@ -805,7 +806,7 @@ export class Fsgs extends React.Component<FsgsProps> {
         await this.loadScript(storage, 0);
         return;
       } else {
-        // console.log("Jump to first.");
+        // logger.debug("Jump to first.");
         this.m_programCounter = 0;
       }
     } else if (storage && !nullUndefinedCheck(target)) {
@@ -814,22 +815,22 @@ export class Fsgs extends React.Component<FsgsProps> {
         return;
       } else {
         const programCounter = this.getProgramCounter(target as (string | number));
-        // console.log(`Jump to ${target} (${programCounter}) of script ${storage}`);
+        // logger.debug(`Jump to ${target} (${programCounter}) of script ${storage}`);
         this.m_programCounter = programCounter;
       }
     } else if (!storage && !nullUndefinedCheck(target)) {
       const programCounter = this.getProgramCounter(target as (string | number));
-      // console.log(`Jump to ${target} (${programCounter})`);
+      // logger.debug(`Jump to ${target} (${programCounter})`);
       this.m_programCounter = programCounter;
     } else {
-      // console.log("Jump to first.");
+      // logger.debug("Jump to first.");
       this.m_programCounter = 0;
     }
     this.m_clickWaiting = false;
     this.m_clickWaitingL = false;
     this.m_clickWaitingS = false;
     this.m_clickWaitingP = false;
-    // console.log("Jump end");
+    // logger.debug("Jump end");
   };
 
   eval = (script?: string) => {
@@ -838,12 +839,12 @@ export class Fsgs extends React.Component<FsgsProps> {
     }
     try {
       const transpiledScript = ts.transpile(script, { target: ScriptTarget.ES2020 });
-      console.log(`eval(${transpiledScript})`);
+      logger.debug(`eval(${transpiledScript})`);
       const result = eval(transpiledScript);
-      console.log("result", result);
+      logger.debug("result", result);
       return result;
     } catch (e) {
-      console.log(e);
+      logger.debug(e);
     }
   };
 
@@ -998,7 +999,7 @@ export class Fsgs extends React.Component<FsgsProps> {
   };
 
   text = (text: string) => {
-    console.log(text);
+    logger.debug(text);
     if (this.m_linkParams) {
       this.m_linkParams.text = text;
     } else {
@@ -1023,7 +1024,7 @@ export class Fsgs extends React.Component<FsgsProps> {
     const macroStackItem = this.m_macroStack.pop();
     const stackItem = this.m_stack.pop();
     if (macroStackItem) {
-      console.log("Macro stack item: %j", macroStackItem);
+      logger.debug("Macro stack item: %j", macroStackItem);
       this.m_macroParams = macroStackItem;
       mp = macroStackItem;
     }
@@ -1137,7 +1138,7 @@ export class Fsgs extends React.Component<FsgsProps> {
   };
 
   label = (operation: Operation) => {
-    console.log(`Label: ${operation.params.name} (${operation.params.alias}) passed.`)
+    logger.debug(`Label: ${operation.params.name} (${operation.params.alias}) passed.`)
     this.m_latestLabel = operation;
   };
 
@@ -1217,7 +1218,7 @@ export class Fsgs extends React.Component<FsgsProps> {
     if (params.layer) {
       messageLayerNumber = this.convertMessageLayerNumberToInt(params.layer);
     }
-    console.log(`Message Layer Number: ${messageLayerNumber}`);
+    logger.debug(`Message Layer Number: ${messageLayerNumber}`);
     messageLayer = this.m_messageLayers[messageLayerNumber];
 
     if (!messageLayer) {
@@ -1266,7 +1267,7 @@ export class Fsgs extends React.Component<FsgsProps> {
       return;
     }
     this.m_currentMessageLayerNumber = this.parseLayerNumber(params.layer).number;
-    console.log(this.m_currentMessageLayerNumber);
+    logger.debug(this.m_currentMessageLayerNumber);
     const messageLayer = this.currentMessageLayer;
     if (!messageLayer) {
       return;
@@ -1476,25 +1477,25 @@ export class Fsgs extends React.Component<FsgsProps> {
   default = async (operation: Operation) => {
     if (this.m_script && operation.action in this.m_macroStore) {
       // Macro
-      // console.log("Stack current PC and script;");
+      // logger.debug("Stack current PC and script;");
       this.m_stack.push({
         scriptName: this.m_currentScriptName,
         programCounter: this.m_programCounter,
       });
-      // console.log("Stack current macro parameters");
+      // logger.debug("Stack current macro parameters");
       this.m_macroStack.push({ ...this.m_macroParams });
-      // console.log("Load new macro parameters");
+      // logger.debug("Load new macro parameters");
       this.m_macroParams = operation.params;
-      // console.log("set mp variable");
+      // logger.debug("set mp variable");
       mp = operation.params;
-      console.log("mp", mp);
-      // console.log("Get macro information")
+      logger.debug("mp", mp);
+      // logger.debug("Get macro information")
       const macroInformation = { ...this.m_macroStore[operation.action] };
-      // console.log("Jump to new PC of new script");
+      // logger.debug("Jump to new PC of new script");
       await this.jump(macroInformation.storage, macroInformation.index);
     } else {
       // Undefined operation
-      console.log(
+      logger.debug(
         `%cundefined operation: ${operation.action}`,
         "color: red",
         operation.params
@@ -1503,8 +1504,8 @@ export class Fsgs extends React.Component<FsgsProps> {
   };
 
   addPlugin = (plugin: {}) => {
-    console.log("Add plugin");
-    console.log(plugin);
+    logger.debug("Add plugin");
+    logger.debug(plugin);
   }
 
   onClick = async (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
@@ -1515,7 +1516,7 @@ export class Fsgs extends React.Component<FsgsProps> {
       x: e.pageX - this.m_offset.x,
       y: e.pageY - this.m_offset.y,
     });
-    console.log(`X: ${position.x}, Y: ${position.y}`);
+    logger.debug(`X: ${position.x}, Y: ${position.y}`);
     await this.click();
   }
 

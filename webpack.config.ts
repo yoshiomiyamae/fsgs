@@ -5,10 +5,10 @@ import { Configuration } from "webpack";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
 
-const isDev = process.env.NODE_ENV === "development";
+const isDevelopmentMode = process.env.NODE_ENV === "development";
 
 const base: Configuration = {
-  mode: isDev ? "development" : "production",
+  mode: isDevelopmentMode ? "development" : "production",
   resolve: {
     extensions: [".js", ".ts", ".jsx", ".tsx", ".json"],
   },
@@ -31,7 +31,7 @@ const base: Configuration = {
           MiniCssExtractPlugin.loader,
           {
             loader: "css-loader",
-            options: { sourceMap: isDev },
+            options: { sourceMap: isDevelopmentMode },
           },
         ],
       },
@@ -41,7 +41,7 @@ const base: Configuration = {
       },
     ],
   },
-  devtool: isDev ? "inline-source-map" : false,
+  devtool: isDevelopmentMode ? "inline-source-map" : false,
 };
 
 const main: Configuration = {
@@ -69,7 +69,7 @@ const renderer: Configuration = {
   plugins: [
     new HtmlWebpackPlugin({
       template: "./src/index.html",
-      minify: !isDev,
+      minify: !isDevelopmentMode,
       inject: "body",
       filename: "index.html",
       scriptLoading: "blocking",

@@ -41,8 +41,24 @@ contextBridge.exposeInMainWorld("api", {
       ): Promise<MessageBoxReturnValue> =>
         ipcRenderer.invoke("window-dialog-show-message-box", options),
     },
-    setTitle: (title: string): Promise<any> => 
+    setTitle: (title: string): Promise<any> =>
       ipcRenderer.invoke("window-set-title", title),
+  },
+  logger: {
+    trace: (message: any, ...args: any[]): Promise<void> =>
+      ipcRenderer.invoke('logger-trace', message, ...args),
+    debug: (message: any, ...args: any[]): Promise<void> =>
+      ipcRenderer.invoke('logger-debug', message, ...args),
+    info: (message: any, ...args: any[]): Promise<void> =>
+      ipcRenderer.invoke('logger-info', message, ...args),
+    warn: (message: any, ...args: any[]): Promise<void> =>
+      ipcRenderer.invoke('logger-warn', message, ...args),
+    error: (message: any, ...args: any[]): Promise<void> =>
+      ipcRenderer.invoke('logger-error', message, ...args),
+    fatal: (message: any, ...args: any[]): Promise<void> =>
+      ipcRenderer.invoke('logger-fatal', message, ...args),
+    mark: (message: any, ...args: any[]): Promise<void> =>
+      ipcRenderer.invoke('logger-mark', message, ...args),
   },
   shell,
 });

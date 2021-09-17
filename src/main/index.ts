@@ -2,29 +2,43 @@ import {
   BrowserWindow,
   app,
   ipcMain,
-  Event,
   Menu,
   MenuItemConstructorOptions,
   dialog,
 } from "electron";
 import * as path from "path";
-import * as url from "url";
 import { FagParser } from "./parser";
-import { readdirSync, existsSync, promises, Dirent } from "fs";
+import { readdirSync, existsSync, promises } from "fs";
 import * as fileType from "file-type";
 import {
-  GetImageArgs,
-  GetAudioArgs,
-  DoRuleTransitionArgs,
   GetScriptArgs,
 } from "./model";
-import { IpcMainInvokeEvent, MessageBoxOptions, Rectangle } from "electron/main";
+import { IpcMainEvent, IpcMainInvokeEvent, MessageBoxOptions, Rectangle } from "electron/main";
 import ts, { ModuleKind, ScriptTarget } from "typescript";
+import log4js, { levels } from 'log4js';
+
+const isDevelopmentMode = process.env.NODE_ENV === "development";
 
 let mainWindow: BrowserWindow | null;
 
+const logLevel = isDevelopmentMode ? 'debug' : 'error';
+log4js.configure({
+  appenders: {
+    standardOut: { type: 'stdout' },
+    mainLog: { type: 'file', filename: 'main.log' },
+    rendererLog: { type: 'file', filename: 'renderer.log' },
+  },
+  categories: {
+    default: { appenders: ['standardOut', 'mainLog'], level: logLevel },
+    rendererLog: { appenders: ['standardOut', 'rendererLog'], level: logLevel },
+  },
+});
+
+const logger = log4js.getLogger();
+const rendererLogger = log4js.getLogger('rendererLog');
+
 const getResourceDirectory = () => {
-  return process.env.NODE_ENV === "development"
+  return isDevelopmentMode
     ? path.join(process.cwd(), "build")
     : path.join(process.resourcesPath, "app.asar", "build");
 };
@@ -46,7 +60,7 @@ const createWindow = () => {
   const menu = Menu.buildFromTemplate(menuTemplate);
   Menu.setApplicationMenu(menu);
 
-  if (process.env.NODE_ENV === 'development'){
+  if (isDevelopmentMode) {
     mainWindow.maximize();
     mainWindow.webContents.openDevTools();
   }
@@ -59,64 +73,63 @@ const createWindow = () => {
 const createMenuTemplate = (
   window: BrowserWindow
 ): MenuItemConstructorOptions[] => [
-  ...(process.platform === "darwin"
-    ? ([
+    ...(process.platform === "darwin"
+      ? ([
         {
           label: app.getName(),
           submenu: [{ role: "quit" }],
         },
       ] as MenuItemConstructorOptions[])
-    : ([] as MenuItemConstructorOptions[])),
-  {
-    label: "システム(&S)",
-    submenu: [
-      { label: "メッセージを消す(&S)" },
-      { label: "メッセージ履歴の表示(&H)" },
-      { label: "次の選択肢/未読まで進む(&F)" },
-      { label: "自動的に読み進む(&A)" },
-      {
-        label: "自動的に読み進むウェイト(&D)",
-        submenu: [
-          { label: "短い(&1)" },
-          { label: "やや短い(&2)" },
-          { label: "普通(&3)" },
-          { label: "やや長い(&4)" },
-          { label: "長い(&5)" },
-        ],
-      },
-      { type: "separator" },
-      {
-        label: "前に戻る(&B)",
-        click: () => window.webContents.send("menu-clicked", "go-back"),
-      },
-      {
-        label: "最初に戻る(&R)",
-        click: () => window.webContents.send("menu-clicked", "go-to-start"),
-      },
-      { type: "separator" },
-      {
-        label: "終了(&X)",
-        click: () => {
-          console.log(window.webContents);
-          window.webContents.send("menu-clicked", "exit");
+      : ([] as MenuItemConstructorOptions[])),
+    {
+      label: "システム(&S)",
+      submenu: [
+        { label: "メッセージを消す(&S)" },
+        { label: "メッセージ履歴の表示(&H)" },
+        { label: "次の選択肢/未読まで進む(&F)" },
+        { label: "自動的に読み進む(&A)" },
+        {
+          label: "自動的に読み進むウェイト(&D)",
+          submenu: [
+            { label: "短い(&1)" },
+            { label: "やや短い(&2)" },
+            { label: "普通(&3)" },
+            { label: "やや長い(&4)" },
+            { label: "長い(&5)" },
+          ],
         },
-      },
-    ],
-  },
-  ...process.env.NODE_ENV === "development" ? [{
-    label: "デバッグ(&D)",
-    submenu: [
-      {
-        label: "開発者ツールの表示(&D)",
-        click: () => window.webContents.openDevTools(),
-      },
-      {
-        label: "リロード(&R)",
-        click: () => window.reload(),
-      },
-    ],
-  }] : [],
-];
+        { type: "separator" },
+        {
+          label: "前に戻る(&B)",
+          click: () => window.webContents.send("menu-clicked", "go-back"),
+        },
+        {
+          label: "最初に戻る(&R)",
+          click: () => window.webContents.send("menu-clicked", "go-to-start"),
+        },
+        { type: "separator" },
+        {
+          label: "終了(&X)",
+          click: () => {
+            window.webContents.send("menu-clicked", "exit");
+          },
+        },
+      ],
+    },
+    ...isDevelopmentMode ? [{
+      label: "デバッグ(&D)",
+      submenu: [
+        {
+          label: "開発者ツールの表示(&D)",
+          click: () => window.webContents.openDevTools(),
+        },
+        {
+          label: "リロード(&R)",
+          click: () => window.reload(),
+        },
+      ],
+    }] : [],
+  ];
 
 app.once("ready", createWindow);
 
@@ -132,7 +145,7 @@ export const dataToUrl = (data: Buffer, mime: string) => {
 ipcMain.handle(
   "get-script",
   async (event: IpcMainInvokeEvent, args: GetScriptArgs) => {
-    console.log(`get-script(${args.scriptName}) called.`);
+    logger.info(`get-script(${args.scriptName}) called.`);
     const data = await promises.readFile(
       path.join(getResourceDirectory(), "data", "scenario", args.scriptName),
       "utf8"
@@ -145,7 +158,7 @@ ipcMain.handle(
   }
 );
 
-const getFilePathes = (directoryPath: string) => readdirSync(directoryPath, {withFileTypes: true})
+const getFilePathes = (directoryPath: string) => readdirSync(directoryPath, { withFileTypes: true })
   .filter(f => f.isFile())
   .map(f => path.join(directoryPath, f.name))
 
@@ -169,10 +182,10 @@ const searchImage = (fileName: string) => {
 ipcMain.handle(
   "get-image",
   async (event: IpcMainInvokeEvent, filePath: string) => {
-    console.log(`get-image(${filePath}) called.`);
+    logger.info(`get-image(${filePath}) called.`);
     const fileName = path.basename(filePath);
     let loadFilePath = fileName === filePath ? searchImage(fileName) : path.join(getResourceDirectory(), "data", filePath);
-    if(loadFilePath === null) {
+    if (loadFilePath === null) {
       return null;
     }
     const data = await promises.readFile(loadFilePath);
@@ -187,7 +200,7 @@ ipcMain.handle(
 ipcMain.handle(
   "do-rule-transition",
   async (event: IpcMainInvokeEvent, fileName: string) => {
-    console.log(`do-rule-transition(${fileName}) called.`);
+    logger.info(`do-rule-transition(${fileName}) called.`);
     const data = await promises.readFile(
       path.join(getResourceDirectory(), "data", "rule", fileName)
     );
@@ -202,7 +215,7 @@ ipcMain.handle(
 ipcMain.handle(
   "get-audio",
   async (event: IpcMainInvokeEvent, filePath: string) => {
-    console.log(`get-audio(${filePath}) called.`);
+    logger.info(`get-audio(${filePath}) called.`);
     const data = await promises.readFile(
       path.join(getResourceDirectory(), "data", filePath)
     );
@@ -215,12 +228,12 @@ ipcMain.handle(
 );
 
 ipcMain.handle("get-config", async (event: IpcMainInvokeEvent) => {
-  console.log(`get-config called.`);
+  logger.info(`get-config called.`);
   const data = await promises.readFile(
     path.join(getResourceDirectory(), "data", "system", "config.ts")
   );
   const script = data.toString();
-  const transpiledScript = ts.transpile(script, {target: ScriptTarget.ES2020, module: ModuleKind.CommonJS});
+  const transpiledScript = ts.transpile(script, { target: ScriptTarget.ES2020, module: ModuleKind.CommonJS });
   const config = eval(transpiledScript);
   return config;
 });
@@ -269,3 +282,18 @@ ipcMain.handle("window-set-title", (event: IpcMainInvokeEvent, title: string) =>
   }
   mainWindow.setTitle(title);
 });
+
+ipcMain.handle('logger-trace', (event: IpcMainInvokeEvent, message: any, ...args: any[]) =>
+  rendererLogger.trace(message, ...args));
+ipcMain.handle('logger-debug', (event: IpcMainInvokeEvent, message: any, ...args: any[]) =>
+  rendererLogger.debug(message, ...args));
+ipcMain.handle('logger-info', (event: IpcMainInvokeEvent, message: any, ...args: any[]) =>
+  rendererLogger.info(message, ...args));
+ipcMain.handle('logger-warn', (event: IpcMainInvokeEvent, message: any, ...args: any[]) =>
+  rendererLogger.warn(message, ...args));
+ipcMain.handle('logger-error', (event: IpcMainInvokeEvent, message: any, ...args: any[]) =>
+  rendererLogger.error(message, ...args));
+ipcMain.handle('logger-fatal', (event: IpcMainInvokeEvent, message: any, ...args: any[]) =>
+  rendererLogger.fatal(message, ...args));
+ipcMain.handle('logger-mark', (event: IpcMainInvokeEvent, message: any, ...args: any[]) =>
+  rendererLogger.mark(message, ...args));

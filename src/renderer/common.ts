@@ -1,5 +1,7 @@
 import { Rectangle, ColorObject, Position } from "./models/fsgs-model";
 
+export const isDevelopmentMode = process.env.NODE_ENV === "development";
+
 export const sleep = (time: number) =>
   new Promise((resolve) => setTimeout(resolve, time));
 
