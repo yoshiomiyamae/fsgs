@@ -18,7 +18,7 @@ import {
   MessageLayerCollection,
 } from "../components/message-layer";
 import { ImageLayer, ImageLayerCollection } from "../components/image-layer";
-import common, { sleep, nullFallback, nullUndefinedCheck } from "../common";
+import common, { sleep, nullFallback, nullUndefinedCheck, loadImage } from "../common";
 import { messageLayerConfigDefault } from "../configs/config";
 import ts, { ScriptTarget } from "typescript";
 import "../style.css";
@@ -414,67 +414,41 @@ export class Fsgs extends React.Component<FsgsProps> {
   };
 
   setButton = async (args: SetButtonArgs) => {
-    const image = new Image();
-    image.src = args.image as string;
-    image.onload = async () => {
-      image.onload = null;
-      const messageLayer = this.currentMessageLayer;
-      args.image = image;
-      logger.debug(messageLayer);
-      messageLayer?.addButton(args);
-    }
+    const messageLayer = this.currentMessageLayer;
+    messageLayer?.addButton(args);
   }
 
   setImage = async (args: SetImageArgs) => {
-    const image = new Image();
-    image.src = args.data;
+    const image = await loadImage(args.data);
     switch (args.layer) {
       case "base": {
-        image.onload = async () => {
-          image.onload = null;
-          if (!args.page) {
-            throw "page must be specified.";
-          }
-          this.m_baseLayer?.setImage(image, args.page);
+        if (!args.page) {
+          throw "page must be specified.";
         }
+        await this.m_baseLayer?.setImage(image, args.page);
         break;
       }
       case "graph": {
-        image.onload = async () => {
-          image.onload = null;
-          const messageLayer = this.currentMessageLayer;
-          await messageLayer?.writeGraph(image);
-        }
+        const messageLayer = this.currentMessageLayer;
+        await messageLayer?.writeGraph(image);
         break;
       }
       case "message": {
-        image.onload = async () => {
-          image.onload = null;
-          const messageLayer = this.m_messageLayers[args.layerNumber!];
-          if (!messageLayer) {
-            return;
-          }
-          messageLayer.frame = image;
+        const messageLayer = this.m_messageLayers[args.layerNumber!];
+        if (!messageLayer) {
+          return;
         }
+        messageLayer.frame = image;
         break;
       }
       default: {
-        image.onload = async () => {
-          image.onload = null;
-          if (nullUndefinedCheck(args.layerNumber)) {
-            throw "layerNumber must be specified.";
-          }
-          const characterLayer = this.m_characterLayers[args.layerNumber as number];
-          if (characterLayer) {
-            if (args.page) {
-              characterLayer.setImage(image, args.page);
-            }
-            if (args.left) {
-              characterLayer.left = args.left;
-            }
-            if (args.top) {
-              characterLayer.top = args.top;
-            }
+        if (nullUndefinedCheck(args.layerNumber)) {
+          throw "layerNumber must be specified.";
+        }
+        const characterLayer = this.m_characterLayers[args.layerNumber as number];
+        if (characterLayer) {
+          if (args.page) {
+            await characterLayer.setImage(image, args.page, {x: args.left || 0, y: args.top || 0});
           }
         }
         break;
@@ -1225,14 +1199,6 @@ export class Fsgs extends React.Component<FsgsProps> {
       return;
     }
     messageLayer.clear();
-    if (!!params.frame) {
-      const data = await window.api.getImage(params.frame);
-      await this.setImage({
-        data,
-        layer: "message",
-        layerNumber: messageLayerNumber,
-      });
-    }
     !nullUndefinedCheck(params.vertical) && (messageLayer.vertical = params.vertical === "true");
     !nullUndefinedCheck(params.left) && (messageLayer.left = parseInt(params.left));
     !nullUndefinedCheck(params.top) && (messageLayer.top = parseInt(params.top));
@@ -1245,6 +1211,15 @@ export class Fsgs extends React.Component<FsgsProps> {
     !nullUndefinedCheck(params.height) && (messageLayer.size.height = params.height);
     !nullUndefinedCheck(params.color) && (messageLayer.frameColor = params.color);
     !nullUndefinedCheck(params.opacity) && (messageLayer.frameOpacity = params.opacity);
+    
+    if (!!params.frame) {
+      const data = await window.api.getImage(params.frame);
+      await this.setImage({
+        data,
+        layer: "message",
+        layerNumber: messageLayerNumber,
+      });
+    }
   };
 
   playbgm = async (params: ParameterSet) => {
@@ -1340,31 +1315,21 @@ export class Fsgs extends React.Component<FsgsProps> {
     const dlayer = params.layer ? layerNumber.type : LayerTypes.Base;
     if (!params.method || params.method === "universal") {
       const data = await window.api.doRuleTransition(`${params.rule}`);
-      const image = new Image();
-      image.src = data;
+      const image = await loadImage(data);
       switch (dlayer) {
         case LayerTypes.Base: {
-          image.onload = async () => {
-            image.onload = null;
-            const baseLayerTransition = this.transBaseLayerUniversal(params, image);
-            const messageLayerTransition = this.transMessageLayerUniversal(params, image);
-            const characterLayerTransition = this.transCharacterLayerUniversal(params, image);
-            await Promise.all([...baseLayerTransition, ...messageLayerTransition, ...characterLayerTransition]);
-          }
+          const baseLayerTransition = this.transBaseLayerUniversal(params, image);
+          const messageLayerTransition = this.transMessageLayerUniversal(params, image);
+          const characterLayerTransition = this.transCharacterLayerUniversal(params, image);
+          await Promise.all([...baseLayerTransition, ...messageLayerTransition, ...characterLayerTransition]);
           break;
         }
         case LayerTypes.Message: {
-          image.onload = async () => {
-            image.onload = null;
-            await Promise.all(this.transMessageLayerUniversal(params, image));
-          }
+          await Promise.all(this.transMessageLayerUniversal(params, image));
           break;
         }
         case LayerTypes.Character: {
-          image.onload = async () => {
-            image.onload = null;
-            await Promise.all(this.transCharacterLayerUniversal(params, image));
-          }
+          await Promise.all(this.transCharacterLayerUniversal(params, image));
           break;
         }
       }

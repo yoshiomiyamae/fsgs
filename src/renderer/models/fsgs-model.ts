@@ -320,7 +320,7 @@ export interface SetImageArgs {
 }
 
 export interface SetButtonArgs {
-  image?: HTMLImageElement | string,
+  image: string,
   graphicKey?: number | "adapt",
   storage?: string,
   target?: string,

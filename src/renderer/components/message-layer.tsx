@@ -27,6 +27,7 @@ import {
   nullFallback,
   positionIsInRectangle,
   isDevelopmentMode,
+  loadImage,
 } from "../common";
 import { LayerPages } from "../../main/model";
 import { logger } from "../logging";
@@ -308,9 +309,6 @@ export class MessageLayer extends React.Component<
     this.m_frame = frame;
     this.m_mw = this.m_frame.naturalWidth;
     this.m_mh = this.m_frame.naturalHeight;
-    this.m_frame.onload = () => {
-      this.drawFrame();
-    }
     this.drawFrame();
   };
 
@@ -526,7 +524,7 @@ export class MessageLayer extends React.Component<
     if (!this.m_fore.highlight) {
       return;
     }
-    const image = args.image as HTMLImageElement;
+    const image = await loadImage(args.image);
     const width = image.naturalWidth / 3;
     const height = image.naturalHeight;
     const rectangle: Rectangle = {
@@ -613,7 +611,7 @@ export class MessageLayer extends React.Component<
     } else {
       this.m_currentCaretPosition = {
         x: this.marginL + this.ml,
-        y: this.marginT + this.mt,
+        y: this.mt,
       };
     }
   };
@@ -902,6 +900,16 @@ export class MessageLayer extends React.Component<
           characterRectangle.position.y + yOffset
         );
       }
+
+      // context.globalAlpha = 1;
+      // context.strokeStyle = "#00FF00";
+      // context.strokeRect(
+      //   characterRectangle.position.x + xOffset,
+      //   characterRectangle.position.y + yOffset,
+      //   width,
+      //   height
+      // );
+
       context.fillStyle = integerToColorString(this.fontColor);
       context.fillText(
         character,
@@ -952,6 +960,16 @@ export class MessageLayer extends React.Component<
           characterRectangle.position.y
         );
       }
+
+      // context.globalAlpha = 1;
+      // context.strokeStyle = "#00FF00";
+      // context.strokeRect(
+      //   characterRectangle.position.x,
+      //   characterRectangle.position.y,
+      //   width,
+      //   height
+      // );
+
       context.fillStyle = integerToColorString(this.fontColor);
       context.fillText(
         character,
@@ -1086,8 +1104,9 @@ export class MessageLayer extends React.Component<
     if (this.m_frame) {
       context.clearRect(0, 0, this.m_fore.base.width, this.m_fore.base.height);
       context.globalAlpha = 1;
+      logger.debug(`ml: ${this.ml}, mt: ${this.mt}`);
       context.drawImage(this.m_frame, this.ml, this.mt);
-      this.drawDebugRect();
+      // this.drawDebugRect();
     }
   }
 
@@ -1134,7 +1153,7 @@ export class MessageLayer extends React.Component<
       );
     }
 
-    this.drawDebugRect();
+    // this.drawDebugRect();
   };
 
   clear = () => {
@@ -1158,7 +1177,7 @@ export class MessageLayer extends React.Component<
     }
   }
 
-  drawButton = (button: Button, cursorOn: boolean = false) => {
+  drawButton = async (button: Button, cursorOn: boolean = false) => {
     if (!button.params.image) {
       return;
     }
@@ -1169,7 +1188,7 @@ export class MessageLayer extends React.Component<
     if (!context) {
       return;
     }
-    const image = button.params.image as HTMLImageElement;
+    const image = await loadImage(button.params.image);
     context.drawImage(
       image,
       cursorOn ? button.area.size.width * 2 : 0,

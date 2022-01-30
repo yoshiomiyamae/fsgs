@@ -1,7 +1,8 @@
 import * as React from "react";
-import { isDevelopmentMode } from "../common";
+import { isDevelopmentMode, loadImage } from "../common";
+import { logger } from "../logging";
 import {
-  LayerPages,
+  LayerPages, Position,
 } from "../models/fsgs-model";
 import { Layer, LayerProps } from "./layer";
 
@@ -70,20 +71,22 @@ export class ImageLayer extends Layer<ImageLayerProps> {
     }
   };
 
-  setImage = (image: HTMLImageElement, page: LayerPages) => {
+  setImage = async (image: HTMLImageElement, page: LayerPages, position?: Position) => {
+    this.m_bufferCanvas.width = this.props.width;
+    this.m_bufferCanvas.height = this.props.height;
+    const buffer = this.m_bufferCanvas.getContext("2d");
+    if (!this.m_dom || !buffer) {
+      return;
+    }
+    buffer.drawImage(image, position?.x || 0, position?.y || 0);
     switch (page) {
       case LayerPages.Back: {
-        this.m_backImage = image;
+        this.m_backImage = await loadImage(this.m_bufferCanvas.toDataURL());
         break;
       }
       case LayerPages.Fore:
       default: {
-        this.m_foreImage = image;
-        if (this.m_dom) {
-          const context = this.m_dom.getContext("2d");
-          context?.drawImage(image, 0, 0);
-        }
-        break;
+        this.m_foreImage = await loadImage(this.m_bufferCanvas.toDataURL());
       }
     }
   };

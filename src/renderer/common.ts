@@ -93,6 +93,13 @@ export const intRandom = (min: number, max: number) => {
   return Math.floor(Math.random() * (max - min + 1) + min);
 };
 
+export const loadImage = (src: string) => new Promise<HTMLImageElement>((resolve, reject) => {
+  const img = new Image();
+  img.onload = () => resolve(img);
+  img.onerror = (e) => reject(e);
+  img.src = src;
+});
+
 export default {
   str2Num,
   random,
