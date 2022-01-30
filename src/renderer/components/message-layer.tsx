@@ -153,6 +153,8 @@ export class MessageLayer extends React.Component<
     }
     this.m_frameColor = this.frameColor;
     this.m_frameOpacity = this.frameOpacity;
+
+    this.clear();
   }
 
   set text(text: string) {
@@ -611,7 +613,7 @@ export class MessageLayer extends React.Component<
     } else {
       this.m_currentCaretPosition = {
         x: this.marginL + this.ml,
-        y: this.mt,
+        y: this.marginT + this.mt,
       };
     }
   };
@@ -901,14 +903,16 @@ export class MessageLayer extends React.Component<
         );
       }
 
-      // context.globalAlpha = 1;
-      // context.strokeStyle = "#00FF00";
-      // context.strokeRect(
-      //   characterRectangle.position.x + xOffset,
-      //   characterRectangle.position.y + yOffset,
-      //   width,
-      //   height
-      // );
+      this.drawDebugRect("#FF0000", {
+        position: {
+          x: characterRectangle.position.x + xOffset,
+          y: characterRectangle.position.y + yOffset,
+        },
+        size: {
+          width,
+          height,
+        }
+      });
 
       context.fillStyle = integerToColorString(this.fontColor);
       context.fillText(
@@ -961,14 +965,7 @@ export class MessageLayer extends React.Component<
         );
       }
 
-      // context.globalAlpha = 1;
-      // context.strokeStyle = "#00FF00";
-      // context.strokeRect(
-      //   characterRectangle.position.x,
-      //   characterRectangle.position.y,
-      //   width,
-      //   height
-      // );
+      this.drawDebugRect("#FF0000", characterRectangle);
 
       context.fillStyle = integerToColorString(this.fontColor);
       context.fillText(
@@ -1082,12 +1079,20 @@ export class MessageLayer extends React.Component<
     logger.trace("Before caret position", this.m_currentCaretPosition);
     if (this.m_vertical) {
       this.m_currentCaretPosition.x -= this.m_lineHeight + this.lineSpacing;
+      if (this.m_currentCaretPosition.x < this.ml + this.marginL) {
+        this.clear();
+        return;
+      }
       this.m_currentCaretPosition.y = this.calculateTopMargin();
       this.m_lineHeight = this.fontSize + this.rubySize + this.rubyOffset;
     } else {
       this.m_currentCaretPosition.x = this.calculateLeftMargin();
       this.m_currentCaretPosition.y += this.m_lineHeight + this.lineSpacing;
       this.m_lineHeight = this.fontSize + this.rubySize + this.rubyOffset;
+      if (this.m_currentCaretPosition.y + this.m_lineHeight > this.mt + this.mh - this.marginB) {
+        this.clear();
+        return;
+      }
     }
     logger.trace("After caret position", this.m_currentCaretPosition);
     this.m_afterSetAlignment = true;
@@ -1106,11 +1111,11 @@ export class MessageLayer extends React.Component<
       context.globalAlpha = 1;
       logger.debug(`ml: ${this.ml}, mt: ${this.mt}`);
       context.drawImage(this.m_frame, this.ml, this.mt);
-      // this.drawDebugRect();
+      this.drawDebugRect();
     }
   }
 
-  drawDebugRect = () => {
+  drawDebugRect = (color?: string, rectangle?: Rectangle) => {
     if (!isDevelopmentMode) {
       return;
     }
@@ -1122,13 +1127,22 @@ export class MessageLayer extends React.Component<
       return;
     }
     context.globalAlpha = 1;
-    context.strokeStyle = "#00FF00";
-    context.strokeRect(
-      this.ml + this.marginL,
-      this.mt + this.marginT,
-      this.mw - this.marginL - this.marginR,
-      this.mh - this.marginT - this.marginB
-    );
+    context.strokeStyle = color || "#00FF00";
+    if (rectangle) {
+      context.strokeRect(
+        rectangle.position.x,
+        rectangle.position.y,
+        rectangle.size.width,
+        rectangle.size.height
+      );
+    } else {
+      context.strokeRect(
+        this.ml + this.marginL,
+        this.mt + this.marginT,
+        this.mw - this.marginL - this.marginR,
+        this.mh - this.marginT - this.marginB
+      );
+    }
   }
 
   clearBase = (page: MessageLayerElementSet) => {
@@ -1153,7 +1167,7 @@ export class MessageLayer extends React.Component<
       );
     }
 
-    // this.drawDebugRect();
+    this.drawDebugRect();
   };
 
   clear = () => {

@@ -158,7 +158,7 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz[l][r]
 @current layer=message1
 @position frame=messageframe.png left=40 top=560 marginl=32 margint=32 marginr=32 marginb=32 draggable=true vertical=false
 　このようにメッセージ枠の中にメッセージを表示させることもできます。[l]アドベンチャーゲームで良くあるタイプです。[l][r]
-てすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとて[p]
+てすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとてすとて[p]
 @layopt layer=message1 visible=false
 @layopt layer=message0 visible=true
 @current layer=message0
