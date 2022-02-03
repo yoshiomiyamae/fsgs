@@ -161,7 +161,8 @@ export class Fsgs extends React.Component<FsgsProps> {
     this.m_config = config;
     await window.api.window.setTitle(this.m_config.title || 'FSGS');
 
-    await window.api.onMenuClicked(async (action: string) => {
+    await window.api.onMenuClicked(async (action: string, params: any[]) => {
+      logger.debug(params);
       switch (action) {
         case "go-to-start": {
           await this.goToStart();
@@ -175,9 +176,34 @@ export class Fsgs extends React.Component<FsgsProps> {
           await this.shutdown();
           break;
         }
+        case "save": {
+          this.save(params[0]);
+          break;
+        }
+        case "load": {
+          this.load(params[0]);
+          break;
+        }
       }
     });
   };
+
+  save = (n: number) => {
+    window.api.save(
+      n,
+      {
+        ...this.m_latestLabel.params,
+        storage: this.m_latestLabel.params.storage || this.m_currentScriptName,
+      },
+      f
+      );
+  }
+
+  load = async (n: number) => {
+    const {params, f: f_} = await window.api.load(n);
+    f = {...f_};
+    this.jump(params.storage, params.name);
+  }
 
   private get scWidth() { return nullFallback(this.m_config.windowConfig?.scWidth, 640); }
   private get scHeight() { return nullFallback(this.m_config.windowConfig?.scHeight, 480); }

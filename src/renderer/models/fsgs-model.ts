@@ -43,7 +43,8 @@ export interface WindowConfig {
   thumbnailWidth?: number;
   thumbnailDepth?: number;
   dataName?: string;
-  saveDataID?: string;
+  saveDataKey?: string;
+  saveDataIv?: string;
   saveDataMode?: string;
   saveMacros?: boolean;
   chSpeeds?: Speed;

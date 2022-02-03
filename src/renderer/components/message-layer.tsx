@@ -49,8 +49,8 @@ interface MessageLayerElementSet {
 
 const CHARACTER_SET_1 = /[、。，､｡]/;
 const CHARACTER_SET_2 = /[ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮヵヶ]/;
-const CHARACTER_SET_3 = /[「『（【［〈《〔｛〘〚＜」』）】］〉》〕｝〙〛＞；：｀]/;
-const CHARACTER_SET_4 = /[«｢{\[\(<»｣}\]\)>ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!"#$%&'~=\-\^\\@`+*,./?_]/;
+const CHARACTER_SET_3 = /[「『（【［〈《〔｛〘〚＜」』）】］〉》〕｝〙〛＞；：｀ー]/;
+const CHARACTER_SET_4 = /[«｢{\[\(<»｣}\]\)>ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!"#$%&'~=\-\^\\@`+*,./?_1234567890]/;
 const CHARACTER_SET_5 = /[‹›;:]/;
 const CHARACTER_SET_6 = /[”’]/;
 
@@ -616,6 +616,10 @@ export class MessageLayer extends React.Component<
         y: this.marginT + this.mt,
       };
     }
+    this.m_lineHeight = this.fontSize + this.rubySize + this.rubyOffset;
+
+    logger.debug('current caret position %j', this.m_currentCaretPosition);
+    logger.debug('line height %j', this.m_lineHeight);
   };
 
   isTextRemaining = () => {

@@ -54,7 +54,8 @@ const config: Config = {
     thumbnailWidth: 133,
     thumbnailDepth: 8,
     dataName: "data",
-    saveDataID: "00000000-0000-0000-0000-000000000000",
+    saveDataKey: "d0f76b7298b1daa92b5b18bdb244e40eafbda73d760f69e081d0802ab752d148",
+    saveDataIv: "807ff810abcf953fdc3c5de433640329",
     saveDataMode: "",
     saveMacros: true,
     chSpeeds: {

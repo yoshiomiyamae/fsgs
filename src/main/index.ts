@@ -6,18 +6,19 @@ import {
   MenuItemConstructorOptions,
   dialog,
 } from "electron";
-import * as path from "path";
+import path from "path";
 import { FagParser } from "./parser";
 import { readdirSync, existsSync, promises } from "fs";
-import * as fileType from "file-type";
+import fileType from "file-type";
 import {
   GetScriptArgs,
 } from "./model";
 import { IpcMainEvent, IpcMainInvokeEvent, MessageBoxOptions, Rectangle } from "electron/main";
 import ts, { ModuleKind, ScriptTarget } from "typescript";
 import log4js, { levels } from 'log4js';
-
-const isDevelopmentMode = process.env.NODE_ENV === "development";
+import { ParameterSet } from "../renderer/models/fsgs-model";
+import { getResourceDirectory, isDevelopmentMode } from "./config";
+import { load, save } from "./save-data";
 
 let mainWindow: BrowserWindow | null;
 
@@ -36,12 +37,6 @@ log4js.configure({
 
 const logger = log4js.getLogger();
 const rendererLogger = log4js.getLogger('rendererLog');
-
-const getResourceDirectory = () => {
-  return isDevelopmentMode
-    ? path.join(process.cwd(), "build")
-    : path.join(process.resourcesPath, "app.asar", "build");
-};
 
 const createWindow = () => {
   mainWindow = new BrowserWindow({
@@ -113,6 +108,101 @@ const createMenuTemplate = (
           click: () => {
             window.webContents.send("menu-clicked", "exit");
           },
+        },
+      ],
+    },
+    {
+      label: "栞(&B)",
+      submenu: [
+        {
+          label: "栞をはさむ(&S)",
+          submenu: [
+            {
+              label: "栞1",
+              click: () => window.webContents.send("menu-clicked", "save", 1),
+            },
+            {
+              label: "栞2",
+              click: () => window.webContents.send("menu-clicked", "save", 2),
+            },
+            {
+              label: "栞3",
+              click: () => window.webContents.send("menu-clicked", "save", 3),
+            },
+            {
+              label: "栞4",
+              click: () => window.webContents.send("menu-clicked", "save", 4),
+            },
+            {
+              label: "栞5",
+              click: () => window.webContents.send("menu-clicked", "save", 5),
+            },
+            {
+              label: "栞6",
+              click: () => window.webContents.send("menu-clicked", "save", 6),
+            },
+            {
+              label: "栞7",
+              click: () => window.webContents.send("menu-clicked", "save", 7),
+            },
+            {
+              label: "栞8",
+              click: () => window.webContents.send("menu-clicked", "save", 8),
+            },
+            {
+              label: "栞9",
+              click: () => window.webContents.send("menu-clicked", "save", 9),
+            },
+            {
+              label: "栞10",
+              click: () => window.webContents.send("menu-clicked", "save", 10),
+            },
+          ]
+        },
+        {
+          label: "栞をたどる(&L)",
+          submenu: [
+            {
+              label: "栞1",
+              click: () => window.webContents.send("menu-clicked", "load", 1),
+            },
+            {
+              label: "栞2",
+              click: () => window.webContents.send("menu-clicked", "load", 2),
+            },
+            {
+              label: "栞3",
+              click: () => window.webContents.send("menu-clicked", "load", 3),
+            },
+            {
+              label: "栞4",
+              click: () => window.webContents.send("menu-clicked", "load", 4),
+            },
+            {
+              label: "栞5",
+              click: () => window.webContents.send("menu-clicked", "load", 5),
+            },
+            {
+              label: "栞6",
+              click: () => window.webContents.send("menu-clicked", "load", 6),
+            },
+            {
+              label: "栞7",
+              click: () => window.webContents.send("menu-clicked", "load", 7),
+            },
+            {
+              label: "栞8",
+              click: () => window.webContents.send("menu-clicked", "load", 8),
+            },
+            {
+              label: "栞9",
+              click: () => window.webContents.send("menu-clicked", "load", 9),
+            },
+            {
+              label: "栞10",
+              click: () => window.webContents.send("menu-clicked", "load", 10),
+            },
+          ]
         },
       ],
     },
@@ -281,6 +371,16 @@ ipcMain.handle("window-set-title", (event: IpcMainInvokeEvent, title: string) =>
     return;
   }
   mainWindow.setTitle(title);
+});
+
+ipcMain.handle("save", async (event: IpcMainInvokeEvent, n: number, params: ParameterSet, f: {}) => {
+  logger.debug('Save', n, params.storage, params.labelName, params.alias, f);
+  await save(n, params, f);
+});
+
+ipcMain.handle("load", async (event: IpcMainInvokeEvent, n: number): Promise<{params: ParameterSet, f: {}}> => {
+  logger.debug('Load', n);
+  return await load(n);
 });
 
 ipcMain.handle('logger-trace', (event: IpcMainInvokeEvent, message: any, ...args: any[]) =>

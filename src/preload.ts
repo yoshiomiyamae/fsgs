@@ -8,7 +8,7 @@ import {
   shell,
 } from "electron";
 import { GetScriptArgs } from "./main/model";
-import { Config, SetScriptArgs } from "./renderer/models/fsgs-model";
+import { Config, ParameterSet, SetScriptArgs } from "./renderer/models/fsgs-model";
 contextBridge.exposeInMainWorld("api", {
   getScript: async (args: GetScriptArgs): Promise<SetScriptArgs> =>
     ipcRenderer.invoke("get-script", args),
@@ -20,8 +20,10 @@ contextBridge.exposeInMainWorld("api", {
     ipcRenderer.invoke("get-config"),
   doRuleTransition: async (fileName: string): Promise<string> =>
     ipcRenderer.invoke("do-rule-transition", fileName),
-  onMenuClicked: (func: (action: string) => void): IpcRenderer =>
-    ipcRenderer.on("menu-clicked", (e, ...args) => func(args[0])),
+  onMenuClicked: (func: (action: string, ...params: any[]) => void): IpcRenderer =>
+    ipcRenderer.on("menu-clicked", (e, ...args) => func(args[0], args.slice(1))),
+  save: (n: number, params: ParameterSet) => ipcRenderer.invoke("save", n, params),
+  load: (n: number) => ipcRenderer.invoke("load", n),
   window: {
     getBounds: (): Promise<Rectangle> =>
       ipcRenderer.invoke("window-get-bounds"),

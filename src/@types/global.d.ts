@@ -5,7 +5,7 @@ import {
   Rectangle,
   remote,
 } from "electron";
-import { Config } from "../renderer/models/fsgs-model";
+import { Config, ParameterSet } from "../renderer/models/fsgs-model";
 import { GetScriptArgs } from "./main/model";
 import { SetScriptArgs } from "./renderer/models/fsgs-model";
 
@@ -18,6 +18,8 @@ declare global {
       getConfig: () => Promise<Config>;
       doRuleTransition: (fileName: string) => Promise<string>;
       onMenuClicked: (listner: (...args: any[]) => void) => IpcRenderer;
+      save: (n: number, params: ParameterSet, f: {}) => boolean;
+      load: (n: number) => Promise<{params: ParameterSet, f: {}}>;
       window: {
         getBounds: () => Promise<Rectangle>;
         setBounds: (bounds: Rectangle) => Promise<void>;
