@@ -581,7 +581,7 @@ export class MessageLayer extends React.Component<
       );
     }
     const inputStyle = window.getComputedStyle(input);
-    const height = parseInt(nullFallback(inputStyle.height, "0"));
+    const height = Number(nullFallback(inputStyle.height, "0"));
     const y =
       this.m_currentCaretPosition.y +
       this.m_lineHeight -
@@ -700,13 +700,13 @@ export class MessageLayer extends React.Component<
     }
     this.m_processing = true;
     if (this.m_clickWaiting) {
-      if (!this.m_noWait) {
-        await sleep(this.speed);
-      }
       const newText = this.m_remainingText.substring(1);
       const character = this.m_remainingText[0];
-      await this.writeCharacter(character);
+      const rect = await this.writeCharacter(character);
       this.m_remainingText = nullFallback(newText, "");
+      if (!this.m_noWait && rect) {
+        await sleep(this.speed * rect.size.width * 0.01);
+      }
     }
     this.m_processing = false;
   };
@@ -1103,8 +1103,8 @@ export class MessageLayer extends React.Component<
   };
 
   drawFrame = () => {
-    if (!this.m_fore.base){
-      return ;
+    if (!this.m_fore.base) {
+      return;
     }
     const context = this.m_fore.base.getContext("2d");
     if (!context) {
@@ -1123,8 +1123,8 @@ export class MessageLayer extends React.Component<
     if (!isDevelopmentMode) {
       return;
     }
-    if (!this.m_fore.base){
-      return ;
+    if (!this.m_fore.base) {
+      return;
     }
     const context = this.m_fore.base.getContext("2d");
     if (!context) {
@@ -1190,7 +1190,7 @@ export class MessageLayer extends React.Component<
   };
 
   redrawAllButton = () => {
-    for(let button of this.buttons) {
+    for (let button of this.buttons) {
       this.drawButton(button);
     }
   }

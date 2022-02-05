@@ -14,7 +14,7 @@ export const colorStringToInteger = (value: string | null | undefined) => {
   let temp: string = "";
   if (value[0] === "#") {
     temp = `0x${value.substring(1)}`;
-  } else if (value.substr(0, 2) === "0x") {
+  } else if (value.substring(0, 2) === "0x") {
     temp = value;
   }
   return parseInt(temp, 16);

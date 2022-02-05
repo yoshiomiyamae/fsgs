@@ -1,11 +1,25 @@
 {
   "name": "fsgs",
   "version": "0.1.0",
+  "description": "FSGS the Multi-platform Adventure Game Engine",
   "main": "build/main.js",
   "build": {
+    "productName": "fsgs",
+    "appId": "com.famoce-succellion.fsgs",
     "files": [
       "./build/**/*"
-    ]
+    ],
+    "mac": {
+      "icon": "./icon.icns",
+      "category": "public.app-category.games"
+    },
+    "win": {
+      "icon": "./icon.ico"
+    },
+    "linux": {
+      "icon": "./icon.png",
+      "category": "Game"
+    }
   },
   "scripts": {
     "start": "run-s clean build data serve",
@@ -23,31 +37,31 @@
   "author": "Yoshio Miyamae <yoshio.miyamae@famoce-succellion.com>",
   "license": "MIT",
   "devDependencies": {
-    "@types/mini-css-extract-plugin": "^2.3.0",
-    "@types/node": "^16.9.2",
-    "@types/react": "^17.0.21",
-    "@types/react-dom": "^17.0.9",
-    "@types/sass": "^1.16.1",
+    "@types/mini-css-extract-plugin": "^2.5.1",
+    "@types/node": "^17.0.15",
+    "@types/react": "^17.0.39",
+    "@types/react-dom": "^17.0.11",
+    "@types/sass": "^1.43.1",
     "cpx": "^1.5.0",
     "cross-env": "^7.0.3",
-    "css-loader": "^6.2.0",
-    "electron": "^14.0.1",
-    "electron-builder": "^22.11.7",
-    "html-webpack-plugin": "^5.3.2",
-    "mini-css-extract-plugin": "^2.3.0",
+    "css-loader": "^6.6.0",
+    "electron": "^17.0.0",
+    "electron-builder": "^22.14.5",
+    "html-webpack-plugin": "^5.5.0",
+    "mini-css-extract-plugin": "^2.5.3",
     "rimraf": "^3.0.2",
-    "sass": "^1.41.1",
-    "sass-loader": "^12.1.0",
-    "ts-loader": "^9.2.5",
-    "ts-node": "^10.2.1",
-    "typescript": "^4.4.3",
-    "webpack": "^5.53.0",
-    "webpack-cli": "^4.8.0",
+    "sass": "^1.49.7",
+    "sass-loader": "^12.4.0",
+    "ts-loader": "^9.2.6",
+    "ts-node": "^10.4.0",
+    "typescript": "^4.5.5",
+    "webpack": "^5.68.0",
+    "webpack-cli": "^4.9.2",
     "yarn-run-all": "^3.1.1"
   },
   "dependencies": {
-    "file-type": "^16.5.3",
-    "log4js": "^6.3.0",
+    "file-type": "^17.1.1",
+    "log4js": "^6.4.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2"
   }

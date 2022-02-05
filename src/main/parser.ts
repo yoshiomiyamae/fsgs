@@ -83,13 +83,13 @@ export class FagParser {
       const currentCharacter = script[i];
       switch (currentCharacter) {
         case "[": {
-          if(script.substr(i + 1, 1) === "["){
+          if (script.substring(i + 1, i + 2) === "[") {
             temp += currentCharacter;
             i++;
             break;
           }
           if (inScript) {
-            if (script.substr(i + 1, 9) !== "endscript") {
+            if (script.substring(i + 1, i + 10) !== "endscript") {
               temp += currentCharacter;
               break;
             } else {
@@ -124,7 +124,7 @@ export class FagParser {
           break;
         }
         case "]": {
-          if(script.substr(i + 1, 1) === "]"){
+          if (script.substring(i + 1, i + 2) === "]") {
             temp += currentCharacter;
             i++;
             break;

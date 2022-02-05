@@ -8,8 +8,8 @@ import {
 } from "electron";
 import path from "path";
 import { FagParser } from "./parser";
-import { readdirSync, existsSync, promises } from "fs";
-import fileType from "file-type";
+import { readdirSync, existsSync, promises, fstat } from "fs";
+import { fileTypeFromBuffer } from "file-type";
 import {
   GetScriptArgs,
 } from "./model";
@@ -18,7 +18,7 @@ import ts, { ModuleKind, ScriptTarget } from "typescript";
 import log4js, { levels } from 'log4js';
 import { ParameterSet } from "../renderer/models/fsgs-model";
 import { getResourceDirectory, isDevelopmentMode } from "./config";
-import { load, save } from "./save-data";
+import { getSaves, load, save } from "./save-data";
 
 let mainWindow: BrowserWindow | null;
 
@@ -35,13 +35,44 @@ log4js.configure({
   },
 });
 
-const logger = log4js.getLogger();
+process.on('uncaughtException', (err, origin) => {
+  logger.error(err, origin);
+});
+process.on('unhandledRejection', (err, origin) => {
+  logger.error(err, origin);
+});
+
+export const logger = log4js.getLogger();
 const rendererLogger = log4js.getLogger('rendererLog');
 
-const createWindow = () => {
+let currentMenuTemplate: MenuItemConstructorOptions[] = [];
+
+const findMenuTemplateItem = (keys: string[]) => (
+  (currentMenuTemplate.find(m1 => m1.id === keys[0])?.submenu as MenuItemConstructorOptions[])
+    .find(m2 => m2.id === keys[1])?.submenu as MenuItemConstructorOptions[])
+  .find(m3 => m3.id === keys[2]
+  );
+
+const renameMenuTemplateItem = (keys: string[], label: string) => {
+  const menuItem = findMenuTemplateItem(keys);
+  if (!menuItem) {
+    return;
+  }
+  menuItem.label = label;
+};
+
+const changeEnableMenuTemplateItem = (keys: string[], enabled: boolean) => {
+  const menuItem = findMenuTemplateItem(keys);
+  if (!menuItem) {
+    return;
+  }
+  menuItem.enabled = enabled;
+};
+
+const createWindow = async () => {
   mainWindow = new BrowserWindow({
-    width: 100,
-    height: 100,
+    width: 640,
+    height: 480,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -50,9 +81,21 @@ const createWindow = () => {
   });
   mainWindow.loadFile(path.join(getResourceDirectory(), "index.html"));
 
-  const menuTemplate = createMenuTemplate(mainWindow);
-
-  const menu = Menu.buildFromTemplate(menuTemplate);
+  currentMenuTemplate = createMenuTemplate(mainWindow);
+  if (process.platform === "darwin") {
+    currentMenuTemplate.unshift(menuItemForDarwin);
+  }
+  if (isDevelopmentMode) {
+    currentMenuTemplate.push(createDebugMenuItemTemplate(mainWindow));
+  }
+  const saves = await getSaves();
+  saves.forEach((s, i) => {
+    const n = i + 1
+    renameMenuTemplateItem(['saveload', 'save', `save_${n}`], s.params.alias || s.params.name);
+    renameMenuTemplateItem(['saveload', 'load', `load_${n}`], s.params.alias || s.params.name);
+    changeEnableMenuTemplateItem(['saveload', 'load', `load_${n}`], true);
+  });
+  const menu = Menu.buildFromTemplate(currentMenuTemplate);
   Menu.setApplicationMenu(menu);
 
   if (isDevelopmentMode) {
@@ -68,14 +111,6 @@ const createWindow = () => {
 const createMenuTemplate = (
   window: BrowserWindow
 ): MenuItemConstructorOptions[] => [
-    ...(process.platform === "darwin"
-      ? ([
-        {
-          label: app.getName(),
-          submenu: [{ role: "quit" }],
-        },
-      ] as MenuItemConstructorOptions[])
-      : ([] as MenuItemConstructorOptions[])),
     {
       label: "システム(&S)",
       submenu: [
@@ -113,113 +148,154 @@ const createMenuTemplate = (
     },
     {
       label: "栞(&B)",
+      id: 'saveload',
       submenu: [
         {
           label: "栞をはさむ(&S)",
+          id: 'save',
           submenu: [
             {
               label: "栞1",
+              id: 'save_1',
               click: () => window.webContents.send("menu-clicked", "save", 1),
             },
             {
               label: "栞2",
+              id: 'save_2',
               click: () => window.webContents.send("menu-clicked", "save", 2),
             },
             {
               label: "栞3",
+              id: 'save_3',
               click: () => window.webContents.send("menu-clicked", "save", 3),
             },
             {
               label: "栞4",
+              id: 'save_4',
               click: () => window.webContents.send("menu-clicked", "save", 4),
             },
             {
               label: "栞5",
+              id: 'save_5',
               click: () => window.webContents.send("menu-clicked", "save", 5),
             },
             {
               label: "栞6",
+              id: 'save_6',
               click: () => window.webContents.send("menu-clicked", "save", 6),
             },
             {
               label: "栞7",
+              id: 'save_7',
               click: () => window.webContents.send("menu-clicked", "save", 7),
             },
             {
               label: "栞8",
+              id: 'save_8',
               click: () => window.webContents.send("menu-clicked", "save", 8),
             },
             {
               label: "栞9",
+              id: 'save_9',
               click: () => window.webContents.send("menu-clicked", "save", 9),
             },
             {
               label: "栞10",
+              id: 'save_10',
               click: () => window.webContents.send("menu-clicked", "save", 10),
             },
           ]
         },
         {
           label: "栞をたどる(&L)",
+          id: 'load',
           submenu: [
             {
               label: "栞1",
+              id: 'load_1',
               click: () => window.webContents.send("menu-clicked", "load", 1),
+              enabled: false,
             },
             {
               label: "栞2",
+              id: 'load_2',
               click: () => window.webContents.send("menu-clicked", "load", 2),
+              enabled: false,
             },
             {
               label: "栞3",
+              id: 'load_3',
               click: () => window.webContents.send("menu-clicked", "load", 3),
+              enabled: false,
             },
             {
               label: "栞4",
+              id: 'load_4',
               click: () => window.webContents.send("menu-clicked", "load", 4),
+              enabled: false,
             },
             {
               label: "栞5",
+              id: 'load_5',
               click: () => window.webContents.send("menu-clicked", "load", 5),
+              enabled: false,
             },
             {
               label: "栞6",
+              id: 'load_6',
               click: () => window.webContents.send("menu-clicked", "load", 6),
+              enabled: false,
             },
             {
               label: "栞7",
+              id: 'load_7',
               click: () => window.webContents.send("menu-clicked", "load", 7),
+              enabled: false,
             },
             {
               label: "栞8",
+              id: 'load_8',
               click: () => window.webContents.send("menu-clicked", "load", 8),
+              enabled: false,
             },
             {
               label: "栞9",
+              id: 'load_9',
               click: () => window.webContents.send("menu-clicked", "load", 9),
+              enabled: false,
             },
             {
               label: "栞10",
+              id: 'load_10',
               click: () => window.webContents.send("menu-clicked", "load", 10),
+              enabled: false,
             },
           ]
         },
       ],
     },
-    ...isDevelopmentMode ? [{
-      label: "デバッグ(&D)",
-      submenu: [
-        {
-          label: "開発者ツールの表示(&D)",
-          click: () => window.webContents.openDevTools(),
-        },
-        {
-          label: "リロード(&R)",
-          click: () => window.reload(),
-        },
-      ],
-    }] : [],
   ];
+
+const menuItemForDarwin: MenuItemConstructorOptions = {
+  label: app.getName(),
+  submenu: [{ role: "quit" }],
+};
+
+const createDebugMenuItemTemplate = (
+  window: BrowserWindow
+): MenuItemConstructorOptions => ({
+  label: "デバッグ(&D)",
+  submenu: [
+    {
+      label: "開発者ツールの表示(&D)",
+      click: () => window.webContents.openDevTools(),
+    },
+    {
+      label: "リロード(&R)",
+      click: () => window.reload(),
+    },
+  ],
+});
 
 app.once("ready", createWindow);
 
@@ -279,7 +355,7 @@ ipcMain.handle(
       return null;
     }
     const data = await promises.readFile(loadFilePath);
-    const ft = await fileType.fromBuffer(data);
+    const ft = await fileTypeFromBuffer(data);
     if (!ft) {
       return null;
     }
@@ -294,7 +370,7 @@ ipcMain.handle(
     const data = await promises.readFile(
       path.join(getResourceDirectory(), "data", "rule", fileName)
     );
-    const ft = await fileType.fromBuffer(data);
+    const ft = await fileTypeFromBuffer(data);
     if (!ft) {
       return null;
     }
@@ -309,7 +385,7 @@ ipcMain.handle(
     const data = await promises.readFile(
       path.join(getResourceDirectory(), "data", filePath)
     );
-    const ft = await fileType.fromBuffer(data);
+    const ft = await fileTypeFromBuffer(data);
     if (!ft) {
       return null;
     }
@@ -365,7 +441,7 @@ ipcMain.handle("window-get-menu-bar-visibility", async (event: IpcMainInvokeEven
   }
   return mainWindow.isMenuBarVisible();
 });
-ipcMain.handle("window-dialog-show-message-box", async (event: IpcMainInvokeEvent, options: MessageBoxOptions) => dialog.showMessageBox(options));
+ipcMain.handle("window-dialog-show-message-box", async (event: IpcMainInvokeEvent, options: MessageBoxOptions) => await dialog.showMessageBox(options));
 ipcMain.handle("window-set-title", (event: IpcMainInvokeEvent, title: string) => {
   if (!mainWindow) {
     return;
@@ -374,13 +450,25 @@ ipcMain.handle("window-set-title", (event: IpcMainInvokeEvent, title: string) =>
 });
 
 ipcMain.handle("save", async (event: IpcMainInvokeEvent, n: number, params: ParameterSet, f: {}) => {
-  logger.debug('Save', n, params.storage, params.labelName, params.alias, f);
+  logger.debug("Save parameters", params);
+  logger.debug("Save variables", f);
+  renameMenuTemplateItem(['saveload', 'save', `save_${n}`], params.alias || params.name);
+  renameMenuTemplateItem(['saveload', 'load', `load_${n}`], params.alias || params.name);
+  changeEnableMenuTemplateItem(['saveload', 'load', `load_${n}`], true);
+  const menu = Menu.buildFromTemplate(currentMenuTemplate);
+  mainWindow?.removeMenu();
+  mainWindow?.setMenu(menu);
+
   await save(n, params, f);
 });
 
-ipcMain.handle("load", async (event: IpcMainInvokeEvent, n: number): Promise<{params: ParameterSet, f: {}}> => {
+ipcMain.handle("load", async (event: IpcMainInvokeEvent, n: number): Promise<{ params: ParameterSet, f: {} }> => {
   logger.debug('Load', n);
-  return await load(n);
+  const { params, f } = await load(n);
+  logger.debug("Load parameters", params);
+  logger.debug("Load variables", f);
+
+  return { params, f };
 });
 
 ipcMain.handle('logger-trace', (event: IpcMainInvokeEvent, message: any, ...args: any[]) =>

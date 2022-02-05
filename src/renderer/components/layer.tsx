@@ -338,6 +338,9 @@ export abstract class Layer<T extends LayerProps> extends React.Component<T> {
     if (!this.m_dom) {
       return;
     }
+
+    if (this.m_backImage) this.m_backImage.src = "";
+    if (this.m_foreImage) this.m_foreImage.src = "";
     const context = this.m_dom.getContext("2d");
     context?.clearRect(0, 0, this.m_dom.width, this.m_dom.height);
   };
