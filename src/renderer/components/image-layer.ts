@@ -1,4 +1,3 @@
-import * as React from "react";
 import { isDevelopmentMode, loadImage } from "../common";
 import { logger } from "../logging";
 import {
