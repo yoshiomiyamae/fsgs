@@ -563,7 +563,7 @@ export class MessageLayer extends React.Component<
       let backgroundColor: ColorObject;
       if (params.bgcolor) {
         backgroundColor = integerToRgb(
-          nullFallback(colorStringToInteger("" + params.bgcolor), 0xffffff)
+          nullFallback(colorStringToInteger(`${params.bgcolor}`), 0xffffff)
         );
       } else {
         backgroundColor = {
