@@ -41,6 +41,7 @@ const base: Configuration = {
       },
     ],
   },
+  watch: isDevelopmentMode,
   devtool: isDevelopmentMode ? "inline-source-map" : false,
 };
 

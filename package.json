@@ -23,16 +23,18 @@
   },
   "scripts": {
     "start": "run-s clean build data serve",
-    "clean": "rimraf build",
-    "build": "cross-env NODE_ENV=\"development\" webpack --progress",
+    "dev": "run-p dev:*",
+    "dev:clean": "rimraf build",
+    "dev:tsc": "tsc -w -p tsconfig.dev.json",
+    "dev:data": "run-s data",
+    "dev:webpack": "cross-env NODE_ENV=\"development\" webpack --progress",
+    "dev:electron": "wait-on ./build/main.js && cross-env NODE_ENV=\"development\" electron .",
     "build-prod": "cross-env NODE_ENV=\"production\" webpack --progress",
     "build:win": "run-s build-prod data _build:win",
     "build:linux": "run-s build-prod data _build:linux",
     "_build:win": "electron-builder --win --x64",
     "_build:linux": "electron-builder --linux --x64",
-    "data": "cpx \"data/**/*.*\" build/data/",
-    "startwobuild": "run-s data serve",
-    "serve": "electron ."
+    "data": "cpx \"data/**/*.*\" build/data/"
   },
   "author": "Yoshio Miyamae <yoshio.miyamae@famoce-succellion.com>",
   "license": "MIT",
@@ -55,6 +57,7 @@
     "ts-loader": "^9.2.6",
     "ts-node": "^10.4.0",
     "typescript": "^4.5.5",
+    "wait-on": "^6.0.1",
     "webpack": "^5.68.0",
     "webpack-cli": "^4.9.2",
     "yarn-run-all": "^3.1.1"
