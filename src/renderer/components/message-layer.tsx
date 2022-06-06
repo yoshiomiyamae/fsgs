@@ -581,7 +581,7 @@ export class MessageLayer extends React.Component<
       );
     }
     const inputStyle = window.getComputedStyle(input);
-    const height = Number(nullFallback(inputStyle.height, "0"));
+    const height = parseInt(nullFallback(inputStyle.height, "0"));
     const y =
       this.m_currentCaretPosition.y +
       this.m_lineHeight -
