@@ -1,36 +1,36 @@
 import * as React from "react";
+import { LayerPages } from "../../main/model";
 import {
-  Font,
-  Position,
-  Size,
-  MessageLayerConfig,
+  colorStringToInteger,
+  integerToColorString,
+  integerToRgb,
+  isDevelopmentMode,
+  loadImage,
+  margeRectangle,
+  nullFallback,
+  positionIsInRectangle,
+  sleep,
+} from "../common";
+import { logger } from "../logging";
+import {
   Alignment,
-  ParameterSet,
-  LinkCollection,
-  Rectangle,
-  Link,
-  ColorObject,
-  TransitionSetting,
-  SetButtonArgs,
+  Button,
   ButtonCollection,
   ClickableAreaCollection,
-  Button,
+  ColorObject,
+  Font,
+  Link,
+  LinkCollection,
+  MessageLayerConfig,
+  ParameterSet,
+  Position,
+  Rectangle,
+  SetButtonArgs,
+  Size,
+  TransitionSetting,
   isInstanceOfButton,
   isInstanceOfLink,
 } from "../models/fsgs-model";
-import {
-  sleep,
-  integerToColorString,
-  colorStringToInteger,
-  margeRectangle,
-  integerToRgb,
-  nullFallback,
-  positionIsInRectangle,
-  isDevelopmentMode,
-  loadImage,
-} from "../common";
-import { LayerPages } from "../../main/model";
-import { logger } from "../logging";
 
 export interface MessageLayerProps {
   speed: number;
@@ -158,7 +158,7 @@ export class MessageLayer extends React.Component<
   }
 
   set text(text: string) {
-    const context = this.m_fore.base?.getContext("2d");
+    const context = this.m_fore.base?.getContext("2d", { willReadFrequently: true });
     const lineWidth = this.mw - this.marginR;
     let textWidth = context?.measureText(text).width;
 
@@ -506,7 +506,7 @@ export class MessageLayer extends React.Component<
         rectangle = margeRectangle(rectangle, characterRectangle);
       }
     }
-    const context = this.m_fore.base?.getContext("2d");
+    const context = this.m_fore.base?.getContext("2d", { willReadFrequently: true });
     this.m_remainingText = "";
     if (!context || !rectangle) {
       return;
@@ -812,7 +812,7 @@ export class MessageLayer extends React.Component<
     if (!character) {
       return null;
     }
-    const context = this.m_fore.base?.getContext("2d");
+    const context = this.m_fore.base?.getContext("2d", { willReadFrequently: true });
     if (!context) {
       return null;
     }
@@ -984,7 +984,7 @@ export class MessageLayer extends React.Component<
   writeGraph = async (image: HTMLImageElement) => {
     const width = image.naturalWidth;
     const height = image.naturalHeight;
-    const context = this.m_fore.base?.getContext("2d");
+    const context = this.m_fore.base?.getContext("2d", { willReadFrequently: true });
     const height2 = this.m_font.size || height;
     const ratio = height2 / height;
     const width2 = width * ratio;
@@ -1005,7 +1005,7 @@ export class MessageLayer extends React.Component<
       return margin;
     }
     const lineWidth = this.mw - margin - this.marginR;
-    const context = this.m_fore.base.getContext("2d");
+    const context = this.m_fore.base.getContext("2d", { willReadFrequently: true });
     if (!context) {
       return margin;
     }
@@ -1043,7 +1043,7 @@ export class MessageLayer extends React.Component<
       return margin;
     }
     const lineHeight = this.mh - margin - this.marginB + this.rubySize + this.rubyOffset;
-    const context = this.m_fore.base.getContext("2d");
+    const context = this.m_fore.base.getContext("2d", { willReadFrequently: true });
     if (!context) {
       return margin;
     }
@@ -1106,7 +1106,7 @@ export class MessageLayer extends React.Component<
     if (!this.m_fore.base) {
       return;
     }
-    const context = this.m_fore.base.getContext("2d");
+    const context = this.m_fore.base.getContext("2d", { willReadFrequently: true });
     if (!context) {
       return;
     }
@@ -1126,7 +1126,7 @@ export class MessageLayer extends React.Component<
     if (!this.m_fore.base) {
       return;
     }
-    const context = this.m_fore.base.getContext("2d");
+    const context = this.m_fore.base.getContext("2d", { willReadFrequently: true });
     if (!context) {
       return;
     }
@@ -1153,7 +1153,7 @@ export class MessageLayer extends React.Component<
     if (!page.base) {
       return;
     }
-    const context = page.base.getContext("2d");
+    const context = page.base.getContext("2d", { willReadFrequently: true });
     if (!context) {
       return;
     }
@@ -1202,7 +1202,7 @@ export class MessageLayer extends React.Component<
     if (!this.m_fore.highlight) {
       return;
     }
-    const context = this.m_fore.highlight.getContext("2d");
+    const context = this.m_fore.highlight.getContext("2d", { willReadFrequently: true });
     if (!context) {
       return;
     }
@@ -1224,7 +1224,7 @@ export class MessageLayer extends React.Component<
     if (!this.m_fore.highlight) {
       return;
     }
-    const context = this.m_fore.highlight.getContext("2d");
+    const context = this.m_fore.highlight.getContext("2d", { willReadFrequently: true });
     if (!context) {
       return;
     }
@@ -1255,7 +1255,7 @@ export class MessageLayer extends React.Component<
     if (!page.highlight) {
       return;
     }
-    const context = page.highlight.getContext("2d");
+    const context = page.highlight.getContext("2d", { willReadFrequently: true });
     if (context) {
       context.clearRect(0, 0, page.highlight.width, page.highlight.height);
     }

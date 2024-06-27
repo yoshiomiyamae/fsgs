@@ -3,7 +3,7 @@ export class FagParser {
     const sentences = FagParser.cleanse(script);
     let scenario: OperationCollection = [];
     const labelIndices: Indices = {};
-    let nonLabelText = "";
+    let nonLabelText = '';
     const checkInScript = () => {
       const analyzed = FagParser.analyze(nonLabelText);
       const temp = [...scenario, ...analyzed];
@@ -13,12 +13,12 @@ export class FagParser {
     };
     for (const sentence of sentences) {
       if (sentence.length > 0) {
-        if (sentence[0] === "*") {
+        if (sentence[0] === '*') {
           // Label line
-          if (nonLabelText !== "") {
+          if (nonLabelText !== '') {
             if (!checkInScript()) {
               scenario = [...scenario, ...FagParser.analyze(nonLabelText)];
-              nonLabelText = "";
+              nonLabelText = '';
             }
           }
           if (!checkInScript()) {
@@ -49,7 +49,7 @@ export class FagParser {
     scenario = [...scenario, ...FagParser.analyze(nonLabelText)].filter(
       (operation) =>
         operation.action !== Actions.Text ||
-        operation.params.text.replace(/\r\n/, "") !== ""
+        operation.params.text.replace(/\r\n/, '') !== ''
     );
 
     // let inMacro = false;
@@ -73,23 +73,23 @@ export class FagParser {
     let inTag = false;
     let inText = false;
     let inParam = false;
-    let temp = "";
-    let tagName = "";
-    let paramName = "";
+    let temp = '';
+    let tagName = '';
+    let paramName = '';
     let tagParams: ParameterCollection = {};
     let inScript = false;
 
     for (let i = 0; i < script.length; i++) {
       const currentCharacter = script[i];
       switch (currentCharacter) {
-        case "[": {
-          if (script.substring(i + 1, i + 2) === "[") {
+        case '[': {
+          if (script.substring(i + 1, i + 2) === '[') {
             temp += currentCharacter;
             i++;
             break;
           }
           if (inScript) {
-            if (script.substring(i + 1, i + 10) !== "endscript") {
+            if (script.substring(i + 1, i + 10) !== 'endscript') {
               temp += currentCharacter;
               break;
             } else {
@@ -101,21 +101,21 @@ export class FagParser {
               });
               inScript = false;
               inTag = false;
-              tagName = "";
-              temp = "";
+              tagName = '';
+              temp = '';
               i += 10;
               break;
             }
           }
           if (!inText) {
-            if (temp !== "") {
+            if (temp !== '') {
               output.push(<Operation>{
                 action: Actions.Text,
                 params: {
                   text: temp,
                 },
               });
-              temp = "";
+              temp = '';
             }
             inTag = true;
           } else {
@@ -123,36 +123,36 @@ export class FagParser {
           }
           break;
         }
-        case "]": {
-          if (script.substring(i + 1, i + 2) === "]") {
+        case ']': {
+          if (script.substring(i + 1, i + 2) === ']') {
             temp += currentCharacter;
             i++;
             break;
           }
           if (inTag && !inText) {
-            if (tagName === "") {
+            if (tagName === '') {
               tagName = temp;
-              temp = "";
+              temp = '';
               inParam = true;
             } else if (inParam) {
-              if (paramName !== "") {
+              if (paramName !== '') {
                 tagParams[paramName] = temp;
-                paramName = "";
-                temp = "";
+                paramName = '';
+                temp = '';
                 inParam = false;
               } else {
                 tagParams[temp] = true;
-                temp = "";
+                temp = '';
               }
             }
-            if (tagName === "iscript") {
+            if (tagName === 'iscript') {
               inScript = true;
             }
             output.push(<Operation>{
               action: tagName,
               params: tagParams,
             });
-            tagName = "";
+            tagName = '';
             tagParams = {};
             inTag = false;
           } else {
@@ -168,31 +168,31 @@ export class FagParser {
           }
           break;
         }
-        case "*": {
-          if (inTag && paramName === "" && !inText && !inScript) {
-            tagParams["inherit_macro_params"] = true;
+        case '*': {
+          if (inTag && paramName === '' && !inText && !inScript) {
+            tagParams['inherit_macro_params'] = true;
           } else {
             temp += currentCharacter;
           }
           break;
         }
-        case " ": {
+        case ' ': {
           if (inTag && !inText) {
-            if (tagName === "") {
+            if (tagName === '') {
               tagName = temp;
-              temp = "";
+              temp = '';
               inParam = true;
             } else if (inParam) {
-              if (paramName !== "") {
+              if (paramName !== '') {
                 tagParams[paramName] = temp;
-                paramName = "";
-                temp = "";
+                paramName = '';
+                temp = '';
               } else {
                 tagParams[temp] = true;
-                temp = "";
+                temp = '';
               }
             } else {
-              temp = "";
+              temp = '';
               inParam = true;
             }
           } else {
@@ -200,10 +200,10 @@ export class FagParser {
           }
           break;
         }
-        case "=": {
+        case '=': {
           if (inTag && inParam && !inText) {
             paramName = temp;
-            temp = "";
+            temp = '';
           } else {
             temp += currentCharacter;
           }
@@ -216,7 +216,7 @@ export class FagParser {
       }
     }
 
-    if (temp === "") {
+    if (temp === '') {
       return output;
     }
     if (inScript) {
@@ -233,7 +233,7 @@ export class FagParser {
           text: temp,
         },
       });
-      temp = "";
+      temp = '';
     }
 
     return output;
@@ -242,11 +242,11 @@ export class FagParser {
   static cleanse = (sentence: string) =>
     sentence
       .split(/[\r\n]/)
-      .filter((value) => value !== "" && value.length >= 1 && value[0] !== ";")
+      .filter((value) => value !== '' && value.length >= 1 && value[0] !== ';')
       .map((value) => {
         const match = value.match(/^\t*(.*)$/);
-        const sentence = (match && match[1]) || "";
-        if (sentence[0] === "@") {
+        const sentence = (match && match[1]) || '';
+        if (sentence[0] === '@') {
           return `[${sentence.substring(1)}]`;
         }
         return sentence;
@@ -263,11 +263,11 @@ export interface Operation {
 export type ParameterCollection = { [key: string]: any };
 
 export enum Actions {
-  Label = "label",
-  Text = "text",
-  Macro = "macro",
-  EndMacro = "endmacro",
-  InlineScript = "inlineScript",
+  Label = 'label',
+  Text = 'text',
+  Macro = 'macro',
+  EndMacro = 'endmacro',
+  InlineScript = 'inlineScript',
 }
 
 export type Indices = { [key: string]: number };

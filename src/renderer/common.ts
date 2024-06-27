@@ -1,6 +1,6 @@
-import { Rectangle, ColorObject, Position } from "./models/fsgs-model";
+import { ColorObject, Position, Rectangle } from './models/fsgs-model';
 
-export const isDevelopmentMode = process.env.NODE_ENV === "development";
+export const isDevelopmentMode = process.env.NODE_ENV === 'development';
 
 export const sleep = (time: number) =>
   new Promise((resolve) => setTimeout(resolve, time));
@@ -11,10 +11,10 @@ export const colorStringToInteger = (value: string | null | undefined) => {
   if (!value) {
     return null;
   }
-  let temp: string = "";
-  if (value[0] === "#") {
+  let temp: string = '';
+  if (value[0] === '#') {
     temp = `0x${value.substring(1)}`;
-  } else if (value.substring(0, 2) === "0x") {
+  } else if (value.substring(0, 2) === '0x') {
     temp = value;
   }
   return parseInt(temp, 16);
@@ -60,7 +60,8 @@ export const margeRectangle = (
   return rectangle;
 };
 
-export const nullUndefinedCheck = <T>(value: T | null | undefined) => value === undefined || value === null;
+export const nullUndefinedCheck = <T>(value: T | null | undefined) =>
+  value === undefined || value === null;
 
 export const nullFallback = <T>(
   value: T | null | undefined,
@@ -82,7 +83,6 @@ export const positionIsInRectangle = (
   position.y >= rectangle.position.y &&
   position.y <= rectangle.position.y + rectangle.size.height;
 
-
 export const str2Num = (value: string) => {
   return +value;
 };
@@ -93,15 +93,16 @@ export const intRandom = (min: number, max: number) => {
   return Math.floor(Math.random() * (max - min + 1) + min);
 };
 
-export const loadImage = (src: string) => new Promise<HTMLImageElement>((resolve, reject) => {
-  const img = new Image();
-  img.onload = () => resolve(img);
-  img.onerror = (e) => reject(e);
-  img.src = src;
-});
+export const loadImage = (src: string) =>
+  new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = (e) => reject(e);
+    img.src = src;
+  });
 
 export default {
   str2Num,
   random,
   intRandom,
-}
+};

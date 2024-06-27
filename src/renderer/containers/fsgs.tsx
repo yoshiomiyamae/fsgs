@@ -1,29 +1,28 @@
 import * as React from "react";
-import {
-  Operation,
-  Script,
-  Config,
-  ParameterSet,
-  SetImageArgs,
-  Position,
-  LayerNumber,
-  SetScriptArgs,
-  StackItem,
-  LayerTypes,
-  SetButtonArgs,
-  ParameterSetCollection,
-} from "../models/fsgs-model";
+import ts, { ScriptTarget } from "typescript";
+import common, { loadImage, nullFallback, nullUndefinedCheck, sleep } from "../common";
+import { ImageLayer, ImageLayerCollection } from "../components/image-layer";
 import {
   MessageLayer,
   MessageLayerCollection,
 } from "../components/message-layer";
-import { ImageLayer, ImageLayerCollection } from "../components/image-layer";
-import common, { sleep, nullFallback, nullUndefinedCheck, loadImage } from "../common";
 import { messageLayerConfigDefault } from "../configs/config";
-import ts, { ScriptTarget } from "typescript";
-import "../style.css";
-import { type } from "os";
 import { logger } from "../logging";
+import {
+  Config,
+  LayerNumber,
+  LayerTypes,
+  Operation,
+  ParameterSet,
+  ParameterSetCollection,
+  Position,
+  Script,
+  SetButtonArgs,
+  SetImageArgs,
+  SetScriptArgs,
+  StackItem,
+} from "../models/fsgs-model";
+import "../style.css";
 
 const TARGET_FPS = 120;
 

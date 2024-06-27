@@ -31,21 +31,21 @@ export abstract class Layer<T extends LayerProps> extends React.Component<T> {
     this.m_top = 0;
   }
 
-  set visible (visible: boolean) {
+  set visible(visible: boolean) {
     this.m_visible = visible;
     if (this.m_dom) {
       this.m_dom.style.display = visible ? "inherit" : "none";
     }
   };
-  get visible () {
+  get visible() {
     return this.m_visible;
   };
 
-  get transitionWorking () {
+  get transitionWorking() {
     return this.m_transitionWorking;
   };
 
-  get size () {
+  get size() {
     if (this.m_dom) {
       return {
         width: this.m_dom.offsetWidth,
@@ -56,21 +56,21 @@ export abstract class Layer<T extends LayerProps> extends React.Component<T> {
     }
   };
 
-  set left (left: number) {
+  set left(left: number) {
     this.m_left = left;
     if (this.m_dom) {
       this.m_dom.style.left = `${left}px`;
     }
   };
 
-  set top (top: number) {
+  set top(top: number) {
     this.m_top = top;
     if (this.m_dom) {
       this.m_dom.style.top = `${top}px`;
     }
   };
 
-  set opacity (opacity: number) {
+  set opacity(opacity: number) {
     if (this.m_dom) {
       this.m_dom.style.opacity = `${opacity}`;
     }
@@ -86,10 +86,10 @@ export abstract class Layer<T extends LayerProps> extends React.Component<T> {
     if (!this.m_dom) {
       return;
     }
-    const context = this.m_dom.getContext("2d");
+    const context = this.m_dom.getContext("2d", { willReadFrequently: true });
     this.m_bufferCanvas.width = this.m_dom.width;
     this.m_bufferCanvas.height = this.m_dom.height;
-    const buffer = this.m_bufferCanvas.getContext("2d");
+    const buffer = this.m_bufferCanvas.getContext("2d", { willReadFrequently: true });
     if (
       !buffer ||
       !context ||
@@ -159,10 +159,10 @@ export abstract class Layer<T extends LayerProps> extends React.Component<T> {
     if (!this.m_dom) {
       return;
     }
-    const context = this.m_dom.getContext("2d");
+    const context = this.m_dom.getContext("2d", { willReadFrequently: true });
     this.m_bufferCanvas.width = this.m_dom.width;
     this.m_bufferCanvas.height = this.m_dom.height;
-    const buffer = this.m_bufferCanvas.getContext("2d");
+    const buffer = this.m_bufferCanvas.getContext("2d", { willReadFrequently: true });
     if (!buffer || !context || !this.m_backImage || !this.m_foreImage) {
       return;
     }
@@ -270,10 +270,10 @@ export abstract class Layer<T extends LayerProps> extends React.Component<T> {
     if (!this.m_dom) {
       return;
     }
-    const context = this.m_dom.getContext("2d");
+    const context = this.m_dom.getContext("2d", { willReadFrequently: true });
     this.m_bufferCanvas.width = this.m_dom.width;
     this.m_bufferCanvas.height = this.m_dom.height;
-    const buffer = this.m_bufferCanvas.getContext("2d");
+    const buffer = this.m_bufferCanvas.getContext("2d", { willReadFrequently: true });
     if (!buffer || !context || !(this.m_backImage || this.m_foreImage)) {
       return;
     }
@@ -341,7 +341,7 @@ export abstract class Layer<T extends LayerProps> extends React.Component<T> {
 
     if (this.m_backImage) this.m_backImage.src = "";
     if (this.m_foreImage) this.m_foreImage.src = "";
-    const context = this.m_dom.getContext("2d");
+    const context = this.m_dom.getContext("2d", { willReadFrequently: true });
     context?.clearRect(0, 0, this.m_dom.width, this.m_dom.height);
   };
 

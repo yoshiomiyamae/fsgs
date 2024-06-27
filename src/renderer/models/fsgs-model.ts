@@ -1,4 +1,4 @@
-import { FileTypeResult } from "file-type";
+import { FileTypeResult } from 'file-type';
 
 export type Indices = { [key: string]: number };
 export class Script {
@@ -158,34 +158,34 @@ export interface ImageLayerConfig {
   // pos:
 }
 
-export type Page = "back" | "fore";
+export type Page = 'back' | 'fore';
 export type SyntheticMode =
-  | "alpha"
-  | "transp"
-  | "opaque"
-  | "rect"
-  | "add"
-  | "sub"
-  | "mul"
-  | "dodge"
-  | "darken"
-  | "lighten"
-  | "screen"
-  | "psadd"
-  | "pssub"
-  | "psmul"
-  | "psscreen"
-  | "psoverlay"
-  | "pshlight"
-  | "psslight"
-  | "psdodge"
-  | "psdodge5"
-  | "psburn"
-  | "pslighten"
-  | "psdarken"
-  | "psdiff"
-  | "psdiff5"
-  | "psexcl";
+  | 'alpha'
+  | 'transp'
+  | 'opaque'
+  | 'rect'
+  | 'add'
+  | 'sub'
+  | 'mul'
+  | 'dodge'
+  | 'darken'
+  | 'lighten'
+  | 'screen'
+  | 'psadd'
+  | 'pssub'
+  | 'psmul'
+  | 'psscreen'
+  | 'psoverlay'
+  | 'pshlight'
+  | 'psslight'
+  | 'psdodge'
+  | 'psdodge5'
+  | 'psburn'
+  | 'pslighten'
+  | 'psdarken'
+  | 'psdiff'
+  | 'psdiff5'
+  | 'psexcl';
 
 export interface BgmConfig {
   doubleBuffered?: boolean;
@@ -245,11 +245,9 @@ export type LinkCollection = Link[];
 
 export const isInstanceOfLink = (obj: any): obj is Link => {
   return (
-    obj !== null &&
-    typeof obj === "object" &&
-    typeof obj.link === "number"
-    );
-}
+    obj !== null && typeof obj === 'object' && typeof obj.link === 'number'
+  );
+};
 export interface Button {
   button: number;
   area: Rectangle;
@@ -260,11 +258,9 @@ export type ButtonCollection = Button[];
 
 export const isInstanceOfButton = (obj: any): obj is Button => {
   return (
-    obj !== null &&
-    typeof obj === "object" &&
-    typeof obj.button === "number"
-    );
-}
+    obj !== null && typeof obj === 'object' && typeof obj.button === 'number'
+  );
+};
 
 export type ClickableAreaCollection = (Link | Button)[];
 
@@ -290,29 +286,29 @@ export interface Font {
 }
 
 export enum Direction {
-  Left = "left",
-  Right = "right",
-  Top = "top",
-  Bottom = "bottom",
+  Left = 'left',
+  Right = 'right',
+  Top = 'top',
+  Bottom = 'bottom',
 }
 
 export enum Alignment {
-  Left = "left",
-  Right = "right",
-  Top = "top",
-  Bottom = "bottom",
-  Center = "center",
-  Default = "default",
+  Left = 'left',
+  Right = 'right',
+  Top = 'top',
+  Bottom = 'bottom',
+  Center = 'center',
+  Default = 'default',
 }
 
 export enum StayValue {
-  StayFore = "stayfore",
-  StayBack = "stayback",
-  NoStay = "nostay",
+  StayFore = 'stayfore',
+  StayBack = 'stayback',
+  NoStay = 'nostay',
 }
 
 export interface SetImageArgs {
-  layer: "base" | "graph" | "message" | "transition" | "button";
+  layer: 'base' | 'graph' | 'message' | 'transition' | 'button';
   page?: LayerPages;
   layerNumber?: number;
   left?: number;
@@ -321,26 +317,26 @@ export interface SetImageArgs {
 }
 
 export interface SetButtonArgs {
-  image: string,
-  graphicKey?: number | "adapt",
-  storage?: string,
-  target?: string,
-  recthit?: boolean,
-  exp?: string,
-  hint?: string,
-  onEnter?: Function,
-  onLeave?: Function,
-  countPage?: boolean,
-  clickSE?: string,
-  clickSEBuf?: number,
-  enterSE?: string,
-  enterSEBuf?: number,
-  leaveSE?: string,
-  leaveSEBuf?: number,
+  image: string;
+  graphicKey?: number | 'adapt';
+  storage?: string;
+  target?: string;
+  recthit?: boolean;
+  exp?: string;
+  hint?: string;
+  onEnter?: Function;
+  onLeave?: Function;
+  countPage?: boolean;
+  clickSE?: string;
+  clickSEBuf?: number;
+  enterSE?: string;
+  enterSEBuf?: number;
+  leaveSE?: string;
+  leaveSEBuf?: number;
 }
 
 export interface SetRuleTransitionArgs {
-  layer: "base" | "message";
+  layer: 'base' | 'message';
   layerNumber: number;
   time: number;
   vague: number;
@@ -379,9 +375,9 @@ export interface StackItem {
 }
 
 export enum LayerTypes {
-  Base = "base",
-  Message = "message",
-  Character = "character",
+  Base = 'base',
+  Message = 'message',
+  Character = 'character',
 }
 
 export interface TransitionSetting {
@@ -392,6 +388,6 @@ export interface TransitionSetting {
 }
 
 export enum LayerPages {
-  Fore = "fore",
-  Back = "back",
+  Fore = 'fore',
+  Back = 'back',
 }

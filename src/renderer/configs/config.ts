@@ -1,7 +1,7 @@
-import { Config, MessageLayerConfig } from "../models/fsgs-model";
+import { Config, MessageLayerConfig } from '../models/fsgs-model';
 
 export const messageLayerConfigDefault: MessageLayerConfig = {
-  frameGraphic: "",
+  frameGraphic: '',
   frameColor: 0x000000,
   frameOpacity: 0x80,
   marginL: 16,
@@ -16,7 +16,7 @@ export const messageLayerConfigDefault: MessageLayerConfig = {
   marginRCh: 2,
   defaultFont: {
     size: 48,
-    face: "ＭＳ ゴシック",
+    face: 'ＭＳ ゴシック',
     color: 0xffffff,
     italic: false,
     bold: true,
@@ -30,8 +30,8 @@ export const messageLayerConfigDefault: MessageLayerConfig = {
   },
   defaultLineSpacing: 6,
   defaultPitch: 0,
-  lineBreakGlyph: "LineBreak",
-  pageBreakGlyph: "PageBreak",
+  lineBreakGlyph: 'LineBreak',
+  pageBreakGlyph: 'PageBreak',
   glyphFixedPosition: false,
   glyphFixedLeft: 0,
   glyphFixedTop: 0,
@@ -41,8 +41,8 @@ export const messageLayerConfigDefault: MessageLayerConfig = {
   draggable: false,
 };
 export const config: Config = {
-  configVersion: "3.32 stable",
-  title: "FSGS",
+  configVersion: '3.32 stable',
+  title: 'FSGS',
   ignoreCR: true,
   graphicCacheLimit: 0,
   windowConfig: {
@@ -53,10 +53,11 @@ export const config: Config = {
     saveThumbnail: false,
     thumbnailWidth: 133,
     thumbnailDepth: 8,
-    dataName: "data",
-    saveDataKey: "d0f76b7298b1daa92b5b18bdb244e40eafbda73d760f69e081d0802ab752d148",
-    saveDataIv: "807ff810abcf953fdc3c5de433640329",
-    saveDataMode: "",
+    dataName: 'data',
+    saveDataKey:
+      'd0f76b7298b1daa92b5b18bdb244e40eafbda73d760f69e081d0802ab752d148',
+    saveDataIv: '807ff810abcf953fdc3c5de433640329',
+    saveDataMode: '',
     saveMacros: true,
     chSpeeds: {
       fast: 10,
@@ -77,10 +78,10 @@ export const config: Config = {
       slower: 360,
       slow: 500,
     },
-    cursorDefault: "Arrow",
-    cursorPointed: "HandPoint",
-    cursorWaitingClick: "Arrow",
-    cursorDraggable: "SizeAll",
+    cursorDefault: 'Arrow',
+    cursorPointed: 'HandPoint',
+    cursorWaitingClick: 'Arrow',
+    cursorDraggable: 'SizeAll',
     autoRecordPageShowing: true,
     recordHistoryOfStore: 0,
     maxHistoryOfStore: 5,
@@ -100,7 +101,7 @@ export const config: Config = {
     numBookMarks: 10,
     showBookMarkDate: true,
     showFixedPitchOnlyInFontSelector: false,
-    helpFile: "readme.txt",
+    helpFile: 'readme.txt',
     aboutWidth: 320,
     aboutHeight: 200,
   },
@@ -132,7 +133,7 @@ export const config: Config = {
     doubleBuffered: true,
   },
   historyLayerConfig: {
-    fontName: "ＭＳ ゴシック",
+    fontName: 'ＭＳ ゴシック',
     fontBold: true,
     fontHeight: 24,
     lineHeight: 26,

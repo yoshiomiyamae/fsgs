@@ -1,13 +1,7 @@
-import {
-  ipcRenderer,
-  MessageBoxOptions,
-  MessageBoxReturnValue,
-  Rectangle,
-  remote,
-} from "electron";
-import { Config, ParameterSet } from "../renderer/models/fsgs-model";
-import { GetScriptArgs } from "./main/model";
-import { SetScriptArgs } from "./renderer/models/fsgs-model";
+import { MessageBoxOptions, MessageBoxReturnValue, Rectangle } from 'electron';
+import { Config, ParameterSet } from '../renderer/models/fsgs-model';
+import { GetScriptArgs } from './main/model';
+import { SetScriptArgs } from './renderer/models/fsgs-model';
 
 declare global {
   interface Window {
@@ -19,7 +13,7 @@ declare global {
       doRuleTransition: (fileName: string) => Promise<string>;
       onMenuClicked: (listner: (...args: any[]) => void) => IpcRenderer;
       save: (n: number, params: ParameterSet, f: {}) => boolean;
-      load: (n: number) => Promise<{params: ParameterSet, f: {}}>;
+      load: (n: number) => Promise<{ params: ParameterSet; f: {} }>;
       window: {
         getBounds: () => Promise<Rectangle>;
         setBounds: (bounds: Rectangle) => Promise<void>;
